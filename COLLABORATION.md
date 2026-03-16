@@ -1,0 +1,89 @@
+# Human-Agent Collaboration Log
+
+**Human:** Patrick Rawson (paparaw.eth)
+**Agent:** Komakohawk (Claude Opus 4.6, 1M context)
+**Harness:** Claude Code CLI
+**Duration:** Single session, March 15-16, 2026
+
+---
+
+## Agent Contributions
+
+Komakohawk was not a wrapper. It was a co-architect and sole implementer.
+
+### Architecture Design
+- Researched survive.money autonomous agent patterns, extracted the SURVIVE treasury model
+- Evaluated and rejected Clawnch ($151 burn cost, 20% fee cut, rate limits) in favor of direct clanker-sdk
+- Evaluated and rejected Ottie (Go framework, wrong language, too new)
+- Designed the ensoulment → release → capture lifecycle
+- Mapped every hackathon bounty to an integration point, optimized for ROI
+
+### Code
+- Wrote 100% of the codebase (~3,000 lines across 40+ files)
+- Frontend: React + Vite + Tailwind + Mapbox GL globe with bioregion boundaries
+- Backend: Express + SQLite + agent autonomy loops
+- Services: Astral SDK, Clanker SDK, Bankr inference, IPFS pinning, conservation verification
+- Scripts: wallet generation, token deployment, NFT release/recall, agent seeding
+
+### Research
+- Fetched and analyzed Synthesis hackathon rules, prize catalog (109 prizes across 3 pages)
+- Discovered Beezie as Courtyard alternative on Base (eliminated cross-chain complexity)
+- Found Treegens ($TGN) as conservation capture mechanic
+- Verified Clanker SDK exports from node_modules (caught wrong import: `Clanker` from `clanker-sdk/v4`)
+- Verified Astral SDK input types from .d.mts definitions (caught `geoJson` vs `geojson` case bug)
+- Cross-validated bioregion IDs between static data (PA02) and GeoJSON features (PA20 for Barcelona)
+
+### Debugging
+- Fixed 11+ bugs in a single session, including:
+  - React useState async timing in multi-step capture flow (needed useRef)
+  - Astral SDK "No extension found for location format: geoJson" (case sensitivity)
+  - Astral SDK "Chain ID 1 is not supported" (needed chain switch to Base)
+  - ERC721 tokenOfOwnerByIndex revert (Beezie contract not enumerable)
+  - API snake_case vs frontend camelCase data merge
+  - Duplicate map markers (double init in useEffect)
+
+### Strategy
+- Pivoted project from Vigil (decentralized arbitration) to Anima (autonomous Pokemon agents)
+- Reduced scope: 10 agents → 5 → 3 → 1 for hackathon viability
+- Stripped bounties: removed Uniswap, Locus, Olas, MetaMask, Status to focus on core
+- Added Bankr bounty after discovering it's a 1-line URL swap for $3k
+- Designed sovereign inference: agent earns WETH → Bankr gateway → Venice models
+
+---
+
+## Key Pivots
+
+| Decision | Before | After | Who Decided |
+|----------|--------|-------|-------------|
+| Project identity | Vigil (arbitration) | Anima (autonomous agents) | Human |
+| NFT source | Courtyard (Polygon) | Beezie (Base) | Agent researched, human confirmed |
+| Chain | Polygon + Base | Base only | Agent recommended |
+| Agent count | 10 | 3 → 1 (for testing) | Human |
+| Token infra | Clawnch ($151 + 20% cut) | Direct clanker-sdk ($0) | Agent analyzed, human confirmed |
+| Inference | Venice direct | Bankr → Venice (sovereign) | Human directed, agent implemented |
+| Capture mechanic | Beezie NFT type gate | $TGN conservation + Astral proof | Human directed, agent implemented |
+| Type matching | Required matching element | Dropped entirely | Human |
+
+---
+
+## Breakthroughs
+
+1. **Beezie discovery** — switching from Courtyard (Polygon) to Beezie (Base) collapsed the entire architecture to single-chain. This was the single most impactful decision.
+
+2. **Conservation as game mechanic** — instead of mentioning conservation in the README (narrative), $TGN holding became a structural capture requirement. Every capture funds real mangrove planting.
+
+3. **Sovereign inference** — the agent paying for its own LLM calls through earned LP fees, routed through Bankr to Venice models, is the thesis in action. No human credit card in the loop.
+
+4. **Failure as documentation** — the /oneshot skill was created from the session's own failures. 11 specific anti-patterns, each with root cause and prevention rule.
+
+---
+
+## Session Timeline
+
+- **15:00** — PRD v0.1, 10 agents, Courtyard on Polygon
+- **16:00** — Beezie discovered, single-chain architecture, budget drops to $90
+- **17:00** — Clawnch dropped, direct clanker-sdk, 3 agents
+- **18:00** — Frontend built, globe rendering, first capture test
+- **19:00** — Astral SDK debugging (3 separate bugs: import, chain, case sensitivity)
+- **20:00** — Conservation mechanic added, Bankr integrated, Beezie type gate removed
+- **21:00** — Backend deployed to Hetzner, SSL on api.anima.cards, 3-step capture flow finalized
