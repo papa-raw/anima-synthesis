@@ -1,2 +1,15 @@
+node_modules/
+server/agents/wallets.json
+server/db/anima.db
+server/db/anima.db-shm
+server/db/anima.db-wal
 .env
 register.json
+dist/
+*.log
+.DS_Store
+ref/
+PRD.md
+PRD.pdf
+PRD.docx
+synthesis_prd.docx

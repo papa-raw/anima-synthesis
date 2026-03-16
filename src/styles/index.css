@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #0a0f0a;
+  --bg-card: #111a14;
+  --border: #1a2f1e;
+  --text-primary: #e0ece2;
+  --text-secondary: #6b8f72;
+  --accent-success: #4ade80;
+  --accent-danger: #ef4444;
+  --accent-warning: #eab308;
+
+  --el-water: #3b82f6;
+  --el-fire: #ef4444;
+  --el-nature: #22c55e;
+  --el-electric: #eab308;
+  --el-psychic: #a855f7;
+  --el-fighting: #f97316;
+  --el-normal: #94a3b8;
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Agent markers on globe */
+.agent-marker {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  cursor: pointer;
+}
+.marker-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  opacity: 0.3;
+  animation: marker-pulse 2s ease-in-out infinite;
+}
+.marker-core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255,255,255,0.4);
+  overflow: hidden;
+}
+
+@keyframes marker-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.3; }
+  50% { transform: scale(1.8); opacity: 0; }
+}
+
+/* Dead agent marker */
+.agent-marker[data-status="dead"] .marker-ring {
+  animation: none;
+  opacity: 0.1;
+}
+.agent-marker[data-status="dead"] .marker-core {
+  filter: grayscale(1);
+  opacity: 0.5;
+}
+
+/* Selected agent marker */
+.agent-marker[data-selected="true"] .marker-ring {
+  animation-duration: 1s;
+}
+.agent-marker[data-selected="true"] .marker-core {
+  box-shadow: 0 0 24px var(--el-color);
+}
+
+/* Capture success particles */
+@keyframes capture-particle {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+}
+.animate-capture-particle {
+  animation: capture-particle 0.8s ease-out forwards;
+}
+
+/* Scrollbar hide for dock */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Globe vignette */
+.globe-vignette {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: radial-gradient(ellipse at center, transparent 40%, #0a0f0a 100%);
+}
