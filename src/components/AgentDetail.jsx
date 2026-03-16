@@ -100,10 +100,8 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
           </div>
         </div>
 
-        {/* Full width metric grid */}
+        {/* Secondary metrics */}
         <div className="grid grid-cols-3 gap-2 px-4 pb-4">
-          <MetricCard label="TREASURY" value={`${(agent.ethBalance || 0).toFixed(4)} ETH`} subtitle={`~$${usdValue}`} />
-          <MetricCard label={runway.label} value={runway.value} variant={`${runway.variant} ${runway.animate ? 'animate-pulse' : ''}`} />
           <MetricCard label="TOKEN" value={agent.tokenSymbol || '--'} />
           <MetricCard label="HOLDERS" value={agent.holderCount || '--'} />
           <MetricCard label="DAILY COST" value={`$${agent.dailyCostUsd || 0.50}`} />

@@ -3,6 +3,8 @@ import cors from 'cors';
 import { initDb } from './db/init.js';
 import agentsRouter from './routes/agents.js';
 import captureRouter from './routes/capture.js';
+import heartbeatsRouter from './routes/heartbeats.js';
+import { startAgentLoops } from './services/agentLoop.js';
 
 const app = express();
 app.use(cors());
@@ -14,6 +16,7 @@ const db = initDb();
 // Routes
 app.use('/api/agents', agentsRouter);
 app.use('/api/capture', captureRouter);
+app.use('/api/heartbeats', heartbeatsRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -23,4 +26,6 @@ app.get('/api/health', (req, res) => {
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Anima server running on :${PORT}`);
+  // Start agent autonomy loops after server is ready
+  startAgentLoops(db);
 });
