@@ -6,6 +6,7 @@ import AgentDetail from './components/AgentDetail.jsx';
 import CaptureFlow from './components/CaptureFlow.jsx';
 import { getAgents } from './services/agentApi.js';
 import { getMatchingCard } from './services/beezieService.js';
+import { initBrowserAstral } from './services/astralService.js';
 import { AGENTS } from './data/agents.js';
 
 const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true';
@@ -49,12 +50,32 @@ export default function App() {
   const [walletAddress, setWalletAddress] = useState(null);
   const [walletHasMatchingCard, setWalletHasMatchingCard] = useState(false);
 
-  // Poll agents from server
+  // Poll agents from server — merge API data with static definitions (for center, color, imageUrl)
   useEffect(() => {
     async function fetchAgents() {
       try {
         const data = await getAgents();
-        if (data && data.length > 0) setAgents(data);
+        if (data && data.length > 0) {
+          // Merge: API data (live) + static data (center, color, imageUrl)
+          const merged = data.map(apiAgent => {
+            const staticAgent = AGENTS.find(s => s.id === apiAgent.id) || {};
+            return {
+              ...staticAgent,                    // center, color, imageUrl, etc.
+              ...apiAgent,                       // live data from server overrides
+              center: staticAgent.center || [0, 0],
+              color: staticAgent.color || '#94a3b8',
+              imageUrl: staticAgent.imageUrl || null,
+              bioregionName: apiAgent.bioregion_name || staticAgent.bioregionName || '',
+              ethBalance: apiAgent.eth_balance || 0,
+              runwayDays: apiAgent.runway_days || 0,
+              dailyCostUsd: apiAgent.daily_cost_usd || 0.50,
+              tokenSymbol: apiAgent.token_symbol || staticAgent.tokenSymbol || '--',
+              wethEarnedTotal: apiAgent.weth_earned_total || 0,
+              beezieTokenId: apiAgent.beezie_token_id || staticAgent.beezieTokenId,
+            };
+          });
+          setAgents(merged);
+        }
       } catch (e) {
         // Server not running — use static data
         console.warn('Server not available, using static agent data');
@@ -64,6 +85,16 @@ export default function App() {
     const interval = setInterval(fetchAgents, POLL_INTERVAL);
     return () => clearInterval(interval);
   }, []);
+
+  // Initialize Astral SDK when wallet connects
+  useEffect(() => {
+    if (walletAddress && window.ethereum) {
+      initBrowserAstral().then(sdk => {
+        if (sdk) console.log('Astral SDK initialized for real proofs');
+        else console.warn('Astral SDK init failed — proofs will be simulated');
+      });
+    }
+  }, [walletAddress]);
 
   // Check wallet for matching card when agent selected
   useEffect(() => {

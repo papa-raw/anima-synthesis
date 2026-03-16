@@ -42,7 +42,7 @@ const ERC721_ABI = [
 ];
 
 /**
- * Get all Beezie NFTs held by a wallet
+ * Get Beezie NFT count for a wallet (contract is NOT ERC721Enumerable)
  */
 export async function getBeezieHoldings(walletAddress) {
   try {
@@ -56,30 +56,9 @@ export async function getBeezieHoldings(walletAddress) {
     const count = Number(balance);
     if (count === 0) return [];
 
-    const cards = [];
-    for (let i = 0; i < count; i++) {
-      try {
-        const tokenId = await publicClient.readContract({
-          address: BEEZIE_CONTRACT,
-          abi: ERC721_ABI,
-          functionName: 'tokenOfOwnerByIndex',
-          args: [walletAddress, BigInt(i)]
-        });
-
-        const uri = await publicClient.readContract({
-          address: BEEZIE_CONTRACT,
-          abi: ERC721_ABI,
-          functionName: 'tokenURI',
-          args: [tokenId]
-        });
-
-        const metadata = await fetchMetadata(uri);
-        cards.push(normalizeBeezieCard(tokenId.toString(), metadata));
-      } catch (e) {
-        console.error(`Failed to read token ${i}:`, e.message);
-      }
-    }
-    return cards;
+    // Contract doesn't support tokenOfOwnerByIndex — return a placeholder card
+    // The real token ID isn't known without indexer, but we know they hold >= 1
+    return [{ tokenId: 'beezie-holder', pokemon: 'Beezie NFT', element: 'unknown', count }];
   } catch (e) {
     console.error('Failed to read Beezie holdings:', e.message);
     return [];

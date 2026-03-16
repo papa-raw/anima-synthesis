@@ -6,6 +6,9 @@
  * Server: ethers JsonRpcProvider for verification
  */
 
+import { AstralSDK } from '@decentralized-geo/astral-sdk';
+import { ethers } from 'ethers';
+
 let astralInstance = null;
 
 // ─── Browser Geolocation ───────────────────────────────────────────────
@@ -41,21 +44,42 @@ export function getCurrentPosition(options = {}) {
  */
 export async function initBrowserAstral() {
   try {
-    const { AstralSDK } = await import('@decentralized-geo/astral-sdk');
-    const { ethers } = await import('ethers');
+    if (!window.ethereum) throw new Error('No wallet');
+
+    // Switch to Base if not already
+    try {
+      await window.ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: '0x2105' }] // 8453 = Base
+      });
+    } catch (switchError) {
+      // If Base not added, add it
+      if (switchError.code === 4902) {
+        await window.ethereum.request({
+          method: 'wallet_addEthereumChain',
+          params: [{
+            chainId: '0x2105',
+            chainName: 'Base',
+            nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+            rpcUrls: ['https://mainnet.base.org'],
+            blockExplorerUrls: ['https://basescan.org']
+          }]
+        });
+      }
+    }
+
     const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
-    const network = await provider.getNetwork();
 
     astralInstance = new AstralSDK({
-      chainId: Number(network.chainId),
+      chainId: 8453, // Always Base
       signer,
       apiUrl: 'https://staging-api.astral.global'
     });
+    console.log('Astral SDK ready on Base (8453)');
     return astralInstance;
   } catch (e) {
     console.error('Astral SDK init failed:', e.message);
-    // Fallback to simulated mode
     return null;
   }
 }
@@ -70,11 +94,13 @@ export async function createLocationProof(location, agent) {
   if (astralInstance) {
     try {
       const attestation = await astralInstance.location.offchain.create({
-        latitude: location.latitude,
-        longitude: location.longitude,
-        accuracy: location.accuracy,
-        timestamp,
-        memo: JSON.stringify({ agentId: agent.id, bioregionId: agent.bioregionId })
+        location: {
+          type: 'Point',
+          coordinates: [location.longitude, location.latitude]
+        },
+        locationType: 'geojson',
+        timestamp: new Date(timestamp * 1000),
+        memo: JSON.stringify({ agentId: agent.id, bioregionId: agent.bioregionId, accuracy: location.accuracy })
       });
 
       return {

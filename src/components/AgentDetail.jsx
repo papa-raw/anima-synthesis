@@ -111,7 +111,7 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
         <div className="px-4 pb-4">
           <button
             onClick={onCapture}
-            disabled={!walletHasMatchingCard || agent.status !== 'wild'}
+            disabled={agent.status !== 'wild'}
             className={`w-full py-3 rounded-lg font-bold text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed bg-gradient-to-r ${elementType.gradient} hover:shadow-lg`}
             style={{ '--tw-shadow-color': `${agent.color}33` }}
           >
@@ -122,10 +122,8 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
         {/* Requirements */}
         <div className="px-4 pb-4 space-y-2">
           <div className="text-[0.65rem] uppercase tracking-wider text-[#6b8f72] mb-1">Requirements</div>
-          <Requirement met={walletHasMatchingCard} text={`Matching Beezie NFT (${agent.element} type)`} />
-          <Requirement met={false} text="Hold $TGN (funds tree planting)" />
-          <Requirement met={false} text="GPS location in bioregion" />
-          <Requirement met={false} text="Astral location proof" />
+          <Requirement met={false} text="Hold $TGN on Base (funds tree planting)" />
+          <Requirement met={false} text="Physical presence in bioregion (GPS + Astral proof)" />
         </div>
 
         {/* Soul Chat */}

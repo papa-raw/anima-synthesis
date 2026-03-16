@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import StatusPill from './StatusPill.jsx';
 import { getMatchingCard } from '../services/beezieService.js';
 import { getCurrentPosition, createLocationProof, formatCoordinates } from '../services/astralService.js';
@@ -26,7 +26,7 @@ function CaptureStep({ num, label, state, children }) {
         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border ${colorMap[state] || colorMap.pending}`}>
           {state === 'verified' || state === 'acquired' || state === 'created' || state === 'success' ? '✓' : num}
         </div>
-        {num < 6 && <div className="w-px flex-1 bg-[#1a2f1e] mt-1 min-h-[16px]" />}
+        {num < 3 && <div className="w-px flex-1 bg-[#1a2f1e] mt-1 min-h-[16px]" />}
       </div>
       <div className="flex-1 pb-4">
         <div className="text-[0.65rem] uppercase tracking-wider text-[#6b8f72] mb-1">{label}</div>
@@ -37,15 +37,21 @@ function CaptureStep({ num, label, state, children }) {
 }
 
 export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel, demoMode }) {
-  const [step, setStep] = useState(0); // 0-5 (6 steps)
+  // Demo mode only bypasses wallet checks (NFT + TGN). GPS, bioregion, and Astral proofs are ALWAYS real.
+  const demoWallet = demoMode; // bypass NFT + TGN checks
+  const demoLocation = false;  // NEVER fake GPS — we want real proofs
+  const [step, setStep] = useState(0); // 0-3 (4 steps)
   const [states, setStates] = useState({
-    type: 'pending', conservation: 'pending', gps: 'pending', bioregion: 'pending', proof: 'pending', submit: 'pending'
+    conservation: 'pending', gps: 'pending', bioregion: 'pending', proof: 'pending'
   });
-  const [matchingCard, setMatchingCard] = useState(null);
   const [tgnBalance, setTgnBalance] = useState(null);
-  const [location, setLocation] = useState(null);
+  const [location, _setLocation] = useState(null);
+  const locationRef = useRef(null);
+  const setLocation = (loc) => { locationRef.current = loc; _setLocation(loc); };
   const [bioregionMatch, setBioregionMatch] = useState(null);
-  const [proofData, setProofData] = useState(null);
+  const [proofData, _setProofData] = useState(null);
+  const proofDataRef = useRef(null);
+  const setProofData = (p) => { proofDataRef.current = p; _setProofData(p); };
   const [error, setError] = useState(null);
 
   useEffect(() => { executeStep(0); }, []);
@@ -53,36 +59,23 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
   async function executeStep(stepNum) {
     setError(null);
 
-    // Step 1: Type gate
+    // Step 1: Conservation gate ($TGN)
     if (stepNum === 0) {
-      setStates(s => ({ ...s, type: 'checking' }));
-      try {
-        const card = await getMatchingCard(walletAddress, agent.element);
-        if (card) {
-          setMatchingCard(card);
-          setStates(s => ({ ...s, type: 'verified' }));
-          setStep(1);
-          setTimeout(() => executeStep(1), 500);
-        } else {
-          setStates(s => ({ ...s, type: 'failed' }));
-          setError(`No ${agent.element}-type Beezie NFT found in your wallet.`);
-        }
-      } catch (e) {
-        setStates(s => ({ ...s, type: 'failed' }));
-        setError(e.message);
-      }
-    }
-
-    // Step 2: Conservation gate ($TGN)
-    if (stepNum === 1) {
       setStates(s => ({ ...s, conservation: 'checking' }));
+      if (demoWallet) {
+        setTgnBalance('100.00');
+        setStates(s => ({ ...s, conservation: 'verified' }));
+        setStep(1);
+        setTimeout(() => executeStep(1), 500);
+        return;
+      }
       try {
         const result = await checkTgnBalance(walletAddress);
         if (result.holds) {
           setTgnBalance(result.balance);
           setStates(s => ({ ...s, conservation: 'verified' }));
-          setStep(2);
-          setTimeout(() => executeStep(2), 500);
+          setStep(1);
+          setTimeout(() => executeStep(1), 500);
         } else {
           setStates(s => ({ ...s, conservation: 'failed' }));
           setError('No $TGN found. Buy $TGN on Uniswap to fund tree planting.');
@@ -93,89 +86,66 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
       }
     }
 
-    // Step 3: GPS
-    if (stepNum === 2) {
+    // Step 2: GPS + Bioregion (combined — get location, verify bioregion)
+    if (stepNum === 1) {
       setStates(s => ({ ...s, gps: 'acquiring' }));
       try {
         let loc;
-        if (demoMode) {
+        if (demoLocation) {
           loc = { latitude: agent.center[1], longitude: agent.center[0], accuracy: 10, timestamp: Date.now(), source: 'demo' };
         } else {
           loc = await getCurrentPosition();
         }
         setLocation(loc);
         setStates(s => ({ ...s, gps: 'acquired' }));
-        setStep(3);
-        setTimeout(() => executeStep(3), 500);
-      } catch (e) {
-        setStates(s => ({ ...s, gps: 'failed' }));
-        setError('Location services denied. Enable in browser settings.');
-      }
-    }
 
-    // Step 4: Bioregion verify
-    if (stepNum === 3) {
-      setStates(s => ({ ...s, bioregion: 'checking' }));
-      try {
-        if (demoMode) {
-          setBioregionMatch({ name: agent.bioregionName, match: true });
-          setStates(s => ({ ...s, bioregion: 'verified' }));
-        } else {
-          const feature = findBioregionAtCoordinate(location.longitude, location.latitude);
-          const match = feature?.properties?.id === agent.bioregionId;
-          setBioregionMatch({
-            name: feature?.properties?.name || 'Unknown',
-            match,
-            targetName: agent.bioregionName
-          });
-          if (match) {
-            setStates(s => ({ ...s, bioregion: 'verified' }));
-          } else {
+        // Immediately verify bioregion
+        setStates(s => ({ ...s, bioregion: 'checking' }));
+        const { loadBioregionBoundaries, areBoundariesLoaded } = await import('../services/bioregionService.js');
+        if (!areBoundariesLoaded()) await loadBioregionBoundaries();
+
+        if (!demoLocation) {
+          const feature = findBioregionAtCoordinate(locationRef.current.longitude, locationRef.current.latitude);
+          const featureId = feature?.properties?.Bioregions || feature?.properties?.id || null;
+          const match = featureId === agent.bioregionId;
+
+          if (!match) {
             setStates(s => ({ ...s, bioregion: 'failed' }));
-            setError(`Not in ${agent.bioregionName}. You are in ${feature?.properties?.name || 'unknown bioregion'}.`);
+            setError(`Not in ${agent.bioregionName}. You are in ${featureId || 'unknown bioregion'}.`);
             return;
           }
         }
-        setStep(4);
-        setTimeout(() => executeStep(4), 500);
+        setBioregionMatch({ name: agent.bioregionName, match: true });
+        setStates(s => ({ ...s, bioregion: 'verified' }));
+        setStep(2);
+        setTimeout(() => executeStep(2), 500);
       } catch (e) {
-        setStates(s => ({ ...s, bioregion: 'failed' }));
+        setStates(s => ({ ...s, gps: 'failed' }));
         setError(e.message);
       }
     }
 
-    // Step 5: Astral proof
-    if (stepNum === 4) {
+    // Step 3: Astral proof + Submit
+    if (stepNum === 2) {
       setStates(s => ({ ...s, proof: 'creating' }));
       try {
-        const proof = await createLocationProof(location, agent);
+        const proof = await createLocationProof(locationRef.current, agent);
         setProofData(proof);
         setStates(s => ({ ...s, proof: 'created' }));
-        setStep(5);
-        setTimeout(() => executeStep(5), 500);
-      } catch (e) {
-        setStates(s => ({ ...s, proof: 'failed' }));
-        setError(e.message);
-      }
-    }
 
-    // Step 6: Submit
-    if (stepNum === 5) {
-      setStates(s => ({ ...s, submit: 'submitting' }));
-      try {
+        // Submit capture
         const result = await submitCapture(agent.id, {
           catcherWallet: walletAddress,
-          matchingCardTokenId: matchingCard.tokenId,
-          latitude: location.latitude,
-          longitude: location.longitude,
-          accuracy: location.accuracy,
-          astralProofHash: proofData.uid
+          matchingCardTokenId: 'none',
+          latitude: locationRef.current.latitude,
+          longitude: locationRef.current.longitude,
+          accuracy: locationRef.current.accuracy,
+          astralProofHash: proofDataRef.current?.uid || ''
         });
-        setStates(s => ({ ...s, submit: 'success' }));
-        setStep(6);
+        setStep(3);
         setTimeout(() => onSuccess(result), 2000);
       } catch (e) {
-        setStates(s => ({ ...s, submit: 'failed' }));
+        setStates(s => ({ ...s, proof: 'failed' }));
         setError(e.message);
       }
     }
@@ -192,7 +162,7 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
             </div>
             <div>
               <div className="text-sm font-bold text-[#e0ece2]">CAPTURING: {agent.pokemon}</div>
-              <div className="text-[0.65rem] text-[#6b8f72]">Step {Math.min(step + 1, 6)} of 6</div>
+              <div className="text-[0.65rem] text-[#6b8f72]">Step {Math.min(step + 1, 3)} of 3</div>
             </div>
           </div>
           <button onClick={onCancel} className="text-[#6b8f72] hover:text-[#e0ece2] text-xl">✕</button>
@@ -200,25 +170,7 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
 
         {/* Steps */}
         <div className="p-4 space-y-1">
-          <CaptureStep num={1} label="Type Verification" state={states.type}>
-            {states.type === 'checking' && (
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: agent.color, borderTopColor: 'transparent' }} />
-                <span className="text-[#6b8f72] text-sm">Scanning wallet for {agent.element}-type Beezie NFT...</span>
-              </div>
-            )}
-            {states.type === 'verified' && matchingCard && (
-              <div className="text-emerald-400 text-sm font-medium">Found: {matchingCard.pokemon} (Token #{matchingCard.tokenId})</div>
-            )}
-            {states.type === 'failed' && (
-              <div className="text-sm">
-                <span className="text-red-400">{error}</span>
-                <a href="https://beezie.com/marketplace" target="_blank" rel="noreferrer" className="text-emerald-400 ml-2 hover:underline">Buy on Beezie</a>
-              </div>
-            )}
-          </CaptureStep>
-
-          <CaptureStep num={2} label="Conservation Action" state={states.conservation}>
+          <CaptureStep num={1} label="Conservation Action" state={states.conservation}>
             {states.conservation === 'checking' && (
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#22c55e', borderTopColor: 'transparent' }} />
@@ -238,71 +190,69 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
             )}
           </CaptureStep>
 
-          <CaptureStep num={3} label="GPS Acquisition" state={states.gps}>
+          <CaptureStep num={2} label="Location Proof" state={states.gps === 'acquired' && states.bioregion === 'verified' ? 'verified' : states.gps === 'failed' || states.bioregion === 'failed' ? 'failed' : states.gps !== 'pending' ? 'checking' : 'pending'}>
             {states.gps === 'acquiring' && (
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: agent.color, borderTopColor: 'transparent' }} />
-                <span className="text-[#6b8f72] text-sm">{demoMode ? 'Using agent location (demo)...' : 'Acquiring GPS...'}</span>
+                <span className="text-[#6b8f72] text-sm">Acquiring GPS...</span>
               </div>
             )}
-            {states.gps === 'acquired' && location && (
-              <div className="font-mono text-sm text-[#e0ece2]">
-                {formatCoordinates(location.latitude, location.longitude)}
-                <span className="text-[#6b8f72] ml-2">{'\u00B1'}{Math.round(location.accuracy)}m</span>
-                <span className="text-emerald-400 ml-2">✓</span>
-                {demoMode && <span className="text-amber-400 ml-2 text-xs">(demo)</span>}
+            {states.gps === 'acquired' && states.bioregion === 'checking' && (
+              <div>
+                <div className="font-mono text-sm text-[#e0ece2]">
+                  {formatCoordinates(location.latitude, location.longitude)}
+                  <span className="text-[#6b8f72] ml-2">{'\u00B1'}{Math.round(location.accuracy)}m</span>
+                  <span className="text-emerald-400 ml-2">✓</span>
+                </div>
+                <span className="text-[#6b8f72] text-sm">Verifying bioregion...</span>
               </div>
             )}
-            {states.gps === 'failed' && <span className="text-red-400 text-sm">Location services denied. Enable in browser settings.</span>}
+            {states.bioregion === 'verified' && location && (
+              <div>
+                <div className="font-mono text-sm text-[#e0ece2]">
+                  {formatCoordinates(location.latitude, location.longitude)}
+                  <span className="text-[#6b8f72] ml-2">{'\u00B1'}{Math.round(location.accuracy)}m</span>
+                  <span className="text-emerald-400 ml-2">✓</span>
+                </div>
+                <div className="text-emerald-400 text-sm font-medium mt-1">Confirmed: {agent.bioregionName}</div>
+              </div>
+            )}
+            {(states.gps === 'failed' || states.bioregion === 'failed') && <span className="text-red-400 text-sm">{error}</span>}
           </CaptureStep>
 
-          <CaptureStep num={4} label="Bioregion Verification" state={states.bioregion}>
-            {states.bioregion === 'checking' && <span className="text-[#6b8f72] text-sm">Checking: {agent.bioregionName}...</span>}
-            {states.bioregion === 'verified' && <span className="text-emerald-400 text-sm font-medium">You are in {agent.bioregionName} {demoMode && '(demo)'}</span>}
-            {states.bioregion === 'failed' && <span className="text-red-400 text-sm">{error}</span>}
-          </CaptureStep>
-
-          <CaptureStep num={5} label="Astral Proof" state={states.proof}>
+          <CaptureStep num={3} label="Astral Capture" state={states.proof === 'created' ? 'success' : states.proof}>
             {states.proof === 'creating' && (
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: agent.color, borderTopColor: 'transparent' }} />
-                <span className="text-[#6b8f72] text-sm">Generating location proof...</span>
+                <span className="text-[#6b8f72] text-sm">Creating Astral proof & capturing...</span>
               </div>
             )}
-            {states.proof === 'created' && proofData && (
-              <div className="bg-[#111a14] border border-[#1a2f1e] rounded-lg p-3">
-                <div className="text-[0.6rem] uppercase tracking-[0.08em] text-[#6b8f72] mb-1">
-                  {proofData.simulated ? 'Simulated Proof' : 'EAS Attestation'}
-                </div>
-                <div className="font-mono text-sm text-[#e0ece2] truncate">{proofData.uid}</div>
-                {proofData.txHash && (
-                  <a href={`https://basescan.org/tx/${proofData.txHash}`} target="_blank" rel="noreferrer" className="text-[0.65rem] text-emerald-400 hover:underline">
-                    View on BaseScan
-                  </a>
+            {states.proof === 'created' && (
+              <div>
+                {proofData && (
+                  <div className="bg-[#111a14] border border-[#1a2f1e] rounded-lg p-3 mb-3">
+                    <div className="text-[0.6rem] uppercase tracking-[0.08em] text-[#6b8f72] mb-1">
+                      {proofData.simulated ? 'Location Proof' : 'EAS Attestation'}
+                    </div>
+                    <div className="font-mono text-sm text-[#e0ece2] truncate">{proofData.uid}</div>
+                    {proofData.txHash && (
+                      <a href={`https://basescan.org/tx/${proofData.txHash}`} target="_blank" rel="noreferrer" className="text-[0.65rem] text-emerald-400 hover:underline">
+                        View on BaseScan
+                      </a>
+                    )}
+                  </div>
                 )}
+                <div className="text-center py-4">
+                  <div className="text-3xl font-black text-[#e0ece2] animate-bounce">CAPTURED!</div>
+                  <div className="mt-2 text-[#6b8f72]">{agent.pokemon} is now yours.</div>
+                  <div className="mt-3"><StatusPill status="captured" /></div>
+                </div>
               </div>
             )}
             {states.proof === 'failed' && (
               <div className="text-sm">
                 <span className="text-red-400">{error}</span>
-                <button onClick={() => executeStep(5)} className="text-emerald-400 ml-2 hover:underline">Retry</button>
-              </div>
-            )}
-          </CaptureStep>
-
-          <CaptureStep num={6} label="Onchain Submission" state={states.submit}>
-            {states.submit === 'submitting' && <span className="text-[#6b8f72] text-sm">Submitting capture...</span>}
-            {states.submit === 'success' && (
-              <div className="text-center py-4">
-                <div className="text-3xl font-black text-[#e0ece2] animate-bounce">CAPTURED!</div>
-                <div className="mt-2 text-[#6b8f72]">{agent.pokemon} is now yours.</div>
-                <div className="mt-3"><StatusPill status="captured" /></div>
-              </div>
-            )}
-            {states.submit === 'failed' && (
-              <div className="text-sm">
-                <span className="text-red-400">{error}</span>
-                <button onClick={() => executeStep(4)} className="text-emerald-400 ml-2 hover:underline">Retry</button>
+                <button onClick={() => executeStep(2)} className="text-emerald-400 ml-2 hover:underline">Retry</button>
               </div>
             )}
           </CaptureStep>

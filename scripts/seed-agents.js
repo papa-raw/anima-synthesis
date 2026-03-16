@@ -11,8 +11,8 @@ const AGENTS = [
     id: 'agent-phanpy',
     pokemon: 'Phanpy',
     element: 'fighting',
-    bioregionId: 'NA03',
-    bioregionName: 'Pacific Northwest',
+    bioregionId: 'PA20',
+    bioregionName: 'Mediterranean Forests & Woodlands',
     tokenSymbol: '$PHANPY',
     beezieTokenId: '2302'
   },

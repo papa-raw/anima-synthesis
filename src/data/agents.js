@@ -3,9 +3,9 @@ export const AGENTS = [
     id: 'agent-phanpy',
     pokemon: 'Phanpy',
     element: 'fighting',
-    bioregionId: 'NA03',
-    bioregionName: 'Pacific Northwest',
-    center: [-122.4, 47.6],
+    bioregionId: 'PA20',
+    bioregionName: 'Mediterranean Forests & Woodlands',
+    center: [2.17, 41.39],  // Barcelona
     tokenSymbol: '$PHANPY',
     color: '#f97316',
     beezieTokenId: '2302',
