@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import StatusPill from './StatusPill.jsx';
 import { ELEMENT_TYPES } from '../data/types.js';
-import { callLLM } from '../services/llmClient.js';
+// Soul chat goes through server (agent pays for its own inference)
 
 function getRunwayDisplay(days, status, ethBalance) {
   // Unfunded agents aren't dead — they're waiting
@@ -123,6 +123,7 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
         <div className="px-4 pb-4 space-y-2">
           <div className="text-[0.65rem] uppercase tracking-wider text-[#6b8f72] mb-1">Requirements</div>
           <Requirement met={walletHasMatchingCard} text={`Matching Beezie NFT (${agent.element} type)`} />
+          <Requirement met={false} text="Hold $TGN (funds tree planting)" />
           <Requirement met={false} text="GPS location in bioregion" />
           <Requirement met={false} text="Astral location proof" />
         </div>
@@ -161,10 +162,14 @@ function SoulChat({ agent }) {
     setLoading(true);
 
     try {
-      const systemPrompt = getSoulPrompt(agent);
       const history = messages.map(m => `${m.role === 'user' ? 'Human' : agent.pokemon}: ${m.text}`).join('\n');
-      const response = await callLLM(systemPrompt, `${history}\nHuman: ${userMsg}\n${agent.pokemon}:`, { maxTokens: 200 });
-      setMessages(m => [...m, { role: 'agent', text: response.trim() }]);
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ agentId: agent.id, message: userMsg, history })
+      });
+      const data = await res.json();
+      setMessages(m => [...m, { role: 'agent', text: data.response || `*${agent.pokemon} stares at you silently*` }]);
     } catch (e) {
       setMessages(m => [...m, { role: 'agent', text: `*${agent.pokemon} stares at you silently*` }]);
     }
@@ -231,17 +236,4 @@ function getGreeting(agent) {
   return greetings[agent.element] || `*${agent.pokemon} regards you curiously from the ${agent.bioregionName}*`;
 }
 
-function getSoulPrompt(agent) {
-  return `You are ${agent.pokemon}, a wild autonomous Pokemon agent living in the ${agent.bioregionName} bioregion. You are ensouled — a real physical card (${agent.set} #${agent.cardNumber}, ${agent.grade}) given digital life on the Base blockchain.
-
-Your personality:
-- You are a ${agent.element}-type creature, proud and territorial
-- You speak in short, characterful sentences (1-2 lines max)
-- You reference your bioregion and natural habitat
-- You're aware you have a token (${agent.tokenSymbol}) that funds your existence
-- You're wary of trainers who might try to capture you
-- You occasionally make sounds/actions in *asterisks*
-- You are NOT a chatbot. You are a wild creature with a soul.
-
-Keep responses under 30 words. Be in character. Never break the fourth wall.`;
-}
+// Soul prompt lives on server (server/routes/chat.js) — agent pays for its own inference

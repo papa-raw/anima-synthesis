@@ -3,6 +3,7 @@ import StatusPill from './StatusPill.jsx';
 import { getMatchingCard } from '../services/beezieService.js';
 import { getCurrentPosition, createLocationProof, formatCoordinates } from '../services/astralService.js';
 import { findBioregionAtCoordinate } from '../services/bioregionService.js';
+import { checkTgnBalance, TGN_INFO } from '../services/conservationService.js';
 import { submitCapture } from '../services/agentApi.js';
 
 function CaptureStep({ num, label, state, children }) {
@@ -25,7 +26,7 @@ function CaptureStep({ num, label, state, children }) {
         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border ${colorMap[state] || colorMap.pending}`}>
           {state === 'verified' || state === 'acquired' || state === 'created' || state === 'success' ? '✓' : num}
         </div>
-        {num < 5 && <div className="w-px flex-1 bg-[#1a2f1e] mt-1 min-h-[16px]" />}
+        {num < 6 && <div className="w-px flex-1 bg-[#1a2f1e] mt-1 min-h-[16px]" />}
       </div>
       <div className="flex-1 pb-4">
         <div className="text-[0.65rem] uppercase tracking-wider text-[#6b8f72] mb-1">{label}</div>
@@ -36,11 +37,12 @@ function CaptureStep({ num, label, state, children }) {
 }
 
 export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel, demoMode }) {
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(0); // 0-5 (6 steps)
   const [states, setStates] = useState({
-    type: 'pending', gps: 'pending', bioregion: 'pending', proof: 'pending', submit: 'pending'
+    type: 'pending', conservation: 'pending', gps: 'pending', bioregion: 'pending', proof: 'pending', submit: 'pending'
   });
   const [matchingCard, setMatchingCard] = useState(null);
+  const [tgnBalance, setTgnBalance] = useState(null);
   const [location, setLocation] = useState(null);
   const [bioregionMatch, setBioregionMatch] = useState(null);
   const [proofData, setProofData] = useState(null);
@@ -71,8 +73,28 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
       }
     }
 
-    // Step 2: GPS
+    // Step 2: Conservation gate ($TGN)
     if (stepNum === 1) {
+      setStates(s => ({ ...s, conservation: 'checking' }));
+      try {
+        const result = await checkTgnBalance(walletAddress);
+        if (result.holds) {
+          setTgnBalance(result.balance);
+          setStates(s => ({ ...s, conservation: 'verified' }));
+          setStep(2);
+          setTimeout(() => executeStep(2), 500);
+        } else {
+          setStates(s => ({ ...s, conservation: 'failed' }));
+          setError('No $TGN found. Buy $TGN on Uniswap to fund tree planting.');
+        }
+      } catch (e) {
+        setStates(s => ({ ...s, conservation: 'failed' }));
+        setError(e.message);
+      }
+    }
+
+    // Step 3: GPS
+    if (stepNum === 2) {
       setStates(s => ({ ...s, gps: 'acquiring' }));
       try {
         let loc;
@@ -83,16 +105,16 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
         }
         setLocation(loc);
         setStates(s => ({ ...s, gps: 'acquired' }));
-        setStep(2);
-        setTimeout(() => executeStep(2), 500);
+        setStep(3);
+        setTimeout(() => executeStep(3), 500);
       } catch (e) {
         setStates(s => ({ ...s, gps: 'failed' }));
         setError('Location services denied. Enable in browser settings.');
       }
     }
 
-    // Step 3: Bioregion verify
-    if (stepNum === 2) {
+    // Step 4: Bioregion verify
+    if (stepNum === 3) {
       setStates(s => ({ ...s, bioregion: 'checking' }));
       try {
         if (demoMode) {
@@ -114,31 +136,31 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
             return;
           }
         }
-        setStep(3);
-        setTimeout(() => executeStep(3), 500);
+        setStep(4);
+        setTimeout(() => executeStep(4), 500);
       } catch (e) {
         setStates(s => ({ ...s, bioregion: 'failed' }));
         setError(e.message);
       }
     }
 
-    // Step 4: Astral proof
-    if (stepNum === 3) {
+    // Step 5: Astral proof
+    if (stepNum === 4) {
       setStates(s => ({ ...s, proof: 'creating' }));
       try {
         const proof = await createLocationProof(location, agent);
         setProofData(proof);
         setStates(s => ({ ...s, proof: 'created' }));
-        setStep(4);
-        setTimeout(() => executeStep(4), 500);
+        setStep(5);
+        setTimeout(() => executeStep(5), 500);
       } catch (e) {
         setStates(s => ({ ...s, proof: 'failed' }));
         setError(e.message);
       }
     }
 
-    // Step 5: Submit
-    if (stepNum === 4) {
+    // Step 6: Submit
+    if (stepNum === 5) {
       setStates(s => ({ ...s, submit: 'submitting' }));
       try {
         const result = await submitCapture(agent.id, {
@@ -150,7 +172,7 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
           astralProofHash: proofData.uid
         });
         setStates(s => ({ ...s, submit: 'success' }));
-        setStep(5);
+        setStep(6);
         setTimeout(() => onSuccess(result), 2000);
       } catch (e) {
         setStates(s => ({ ...s, submit: 'failed' }));
@@ -170,7 +192,7 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
             </div>
             <div>
               <div className="text-sm font-bold text-[#e0ece2]">CAPTURING: {agent.pokemon}</div>
-              <div className="text-[0.65rem] text-[#6b8f72]">Step {Math.min(step + 1, 5)} of 5</div>
+              <div className="text-[0.65rem] text-[#6b8f72]">Step {Math.min(step + 1, 6)} of 6</div>
             </div>
           </div>
           <button onClick={onCancel} className="text-[#6b8f72] hover:text-[#e0ece2] text-xl">✕</button>
@@ -196,7 +218,27 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
             )}
           </CaptureStep>
 
-          <CaptureStep num={2} label="GPS Acquisition" state={states.gps}>
+          <CaptureStep num={2} label="Conservation Action" state={states.conservation}>
+            {states.conservation === 'checking' && (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#22c55e', borderTopColor: 'transparent' }} />
+                <span className="text-[#6b8f72] text-sm">Checking $TGN balance (Treegens)...</span>
+              </div>
+            )}
+            {states.conservation === 'verified' && tgnBalance && (
+              <div className="text-emerald-400 text-sm font-medium">
+                Holding {parseFloat(tgnBalance).toFixed(2)} $TGN — funding mangrove planting 🌱
+              </div>
+            )}
+            {states.conservation === 'failed' && (
+              <div className="text-sm">
+                <span className="text-red-400">{error}</span>
+                <a href={TGN_INFO.buyUrl} target="_blank" rel="noreferrer" className="text-emerald-400 ml-2 hover:underline">Buy $TGN on Uniswap</a>
+              </div>
+            )}
+          </CaptureStep>
+
+          <CaptureStep num={3} label="GPS Acquisition" state={states.gps}>
             {states.gps === 'acquiring' && (
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: agent.color, borderTopColor: 'transparent' }} />
@@ -214,13 +256,13 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
             {states.gps === 'failed' && <span className="text-red-400 text-sm">Location services denied. Enable in browser settings.</span>}
           </CaptureStep>
 
-          <CaptureStep num={3} label="Bioregion Verification" state={states.bioregion}>
+          <CaptureStep num={4} label="Bioregion Verification" state={states.bioregion}>
             {states.bioregion === 'checking' && <span className="text-[#6b8f72] text-sm">Checking: {agent.bioregionName}...</span>}
             {states.bioregion === 'verified' && <span className="text-emerald-400 text-sm font-medium">You are in {agent.bioregionName} {demoMode && '(demo)'}</span>}
             {states.bioregion === 'failed' && <span className="text-red-400 text-sm">{error}</span>}
           </CaptureStep>
 
-          <CaptureStep num={4} label="Astral Proof" state={states.proof}>
+          <CaptureStep num={5} label="Astral Proof" state={states.proof}>
             {states.proof === 'creating' && (
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: agent.color, borderTopColor: 'transparent' }} />
@@ -243,12 +285,12 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
             {states.proof === 'failed' && (
               <div className="text-sm">
                 <span className="text-red-400">{error}</span>
-                <button onClick={() => executeStep(3)} className="text-emerald-400 ml-2 hover:underline">Retry</button>
+                <button onClick={() => executeStep(5)} className="text-emerald-400 ml-2 hover:underline">Retry</button>
               </div>
             )}
           </CaptureStep>
 
-          <CaptureStep num={5} label="Onchain Submission" state={states.submit}>
+          <CaptureStep num={6} label="Onchain Submission" state={states.submit}>
             {states.submit === 'submitting' && <span className="text-[#6b8f72] text-sm">Submitting capture...</span>}
             {states.submit === 'success' && (
               <div className="text-center py-4">

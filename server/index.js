@@ -4,6 +4,7 @@ import { initDb } from './db/init.js';
 import agentsRouter from './routes/agents.js';
 import captureRouter from './routes/capture.js';
 import heartbeatsRouter from './routes/heartbeats.js';
+import chatRouter from './routes/chat.js';
 import { startAgentLoops } from './services/agentLoop.js';
 
 const app = express();
@@ -17,6 +18,7 @@ const db = initDb();
 app.use('/api/agents', agentsRouter);
 app.use('/api/capture', captureRouter);
 app.use('/api/heartbeats', heartbeatsRouter);
+app.use('/api/chat', chatRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {
