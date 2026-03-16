@@ -75,6 +75,18 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
               <MapPin size={10} className="text-[#6b8f72]" />
               <span className="text-[0.6rem] text-[#6b8f72] truncate">{agent.bioregionName}</span>
             </div>
+            {agent.wallet_address && (
+              <div
+                className="flex items-center gap-1 mt-0.5 cursor-pointer group"
+                onClick={() => { navigator.clipboard.writeText(agent.wallet_address); }}
+                title="Click to copy wallet address"
+              >
+                <Wallet size={10} className="text-[#6b8f72]" />
+                <span className="text-[0.55rem] font-mono text-[#6b8f72] group-hover:text-emerald-400 transition-colors">
+                  {agent.wallet_address}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Close */}
