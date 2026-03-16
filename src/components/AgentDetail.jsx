@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import StatusPill from './StatusPill.jsx';
 import { ELEMENT_TYPES } from '../data/types.js';
-import { Wallet, Timer, Coin, Users, Lightning, TreePalm, MapPin, ChatCircleDots, X, Info } from '@phosphor-icons/react';
+import { Wallet, Timer, Coin, Users, Lightning, TreePalm, MapPin, ChatCircleDots, X, Info, Cards } from '@phosphor-icons/react';
 
 function getRunwayDisplay(days, status, ethBalance) {
   // Unfunded agents aren't dead — they're waiting
@@ -109,7 +109,13 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
             onClick={() => setTab('soul')}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium transition-colors ${tab === 'soul' ? 'text-emerald-400 border-b-2 border-emerald-400' : 'text-[#6b8f72] hover:text-[#e0ece2]'}`}
           >
-            <ChatCircleDots size={14} /> Soul Link
+            <ChatCircleDots size={14} /> Soul
+          </button>
+          <button
+            onClick={() => setTab('card')}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium transition-colors ${tab === 'card' ? 'text-emerald-400 border-b-2 border-emerald-400' : 'text-[#6b8f72] hover:text-[#e0ece2]'}`}
+          >
+            <Cards size={14} /> Card
           </button>
         </div>
 
@@ -117,30 +123,14 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
         <div className="flex-1 min-h-0 overflow-y-auto">
           {tab === 'info' && (
             <div className="p-4">
-              {/* Large card art */}
-              <div className="flex justify-center mb-4">
-                <div className="relative" style={{ filter: `drop-shadow(0 0 20px ${agent.color}44)` }}>
-                  {agent.imageUrl ? (
-                    <img
-                      src={agent.imageUrl}
-                      className={`w-[280px] h-[392px] rounded-xl object-cover bg-[#111a14] ${agent.status === 'dead' ? 'grayscale opacity-50' : ''}`}
-                      decoding="sync"
-                      alt={agent.pokemon}
-                    />
-                  ) : (
-                    <div className="w-[280px] h-[392px] rounded-xl bg-[#111a14] border border-[#1a2f1e] flex items-center justify-center">
-                      <span className="text-5xl">{elementType.icon}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Metrics grid — bigger */}
+              {/* Metrics grid */}
               <div className="grid grid-cols-2 gap-3 mb-4">
                 <MetricCard label="TREASURY" value={`${(agent.ethBalance || 0).toFixed(4)} ETH`} subtitle={`~$${usdValue}`} />
                 <MetricCard label={runway.label} value={runway.value} variant={`${runway.variant} ${runway.animate ? 'animate-pulse' : ''}`} />
                 <MetricCard label="TOKEN" value={agent.tokenSymbol || '--'} />
                 <MetricCard label="HOLDERS" value={agent.holderCount || '--'} />
+                <MetricCard label="DAILY COST" value={`$${agent.dailyCostUsd || 0.50}`} />
+                <MetricCard label="EARNED" value={`${(agent.wethEarnedTotal || 0).toFixed(4)}`} subtitle="WETH total" />
               </div>
 
               {/* Requirements */}
@@ -148,6 +138,30 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
                 <div className="text-[0.6rem] uppercase tracking-wider text-[#6b8f72]">Capture Requirements</div>
                 <Requirement met={false} text="Hold $TGN on Base (funds tree planting)" />
                 <Requirement met={false} text="Physical presence in bioregion (GPS + Astral proof)" />
+              </div>
+            </div>
+          )}
+
+          {tab === 'card' && (
+            <div className="p-4 flex flex-col items-center">
+              <div className="relative" style={{ filter: `drop-shadow(0 0 24px ${agent.color}44)` }}>
+                {agent.imageUrl ? (
+                  <img
+                    src={agent.imageUrl}
+                    className={`w-[320px] rounded-xl object-contain bg-[#111a14] ${agent.status === 'dead' ? 'grayscale opacity-50' : ''}`}
+                    decoding="sync"
+                    alt={agent.pokemon}
+                  />
+                ) : (
+                  <div className="w-[320px] h-[448px] rounded-xl bg-[#111a14] border border-[#1a2f1e] flex items-center justify-center">
+                    <span className="text-6xl">{elementType.icon}</span>
+                  </div>
+                )}
+              </div>
+              <div className="mt-3 text-center">
+                <div className="text-[0.6rem] uppercase tracking-wider text-[#6b8f72]">{agent.set} #{agent.cardNumber}</div>
+                <div className="text-[0.6rem] text-[#6b8f72]">{agent.grade} · Serial {agent.serial}</div>
+                <div className="text-[0.6rem] text-[#6b8f72] mt-1">Beezie Token #{agent.beezieTokenId}</div>
               </div>
             </div>
           )}
