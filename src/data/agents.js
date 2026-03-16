@@ -50,7 +50,7 @@ export const AGENTS = [
     grade: 'PSA 8',
     serial: '81978760',
     imageUrl: 'https://crimson-calm-beetle-499.mypinata.cloud/ipfs/bafybeib2gg7tfl7l66vj6x642gsexvmoc5auniqnh5h6chy2ldeue6xvxy/psa81978760.jpg',
-    markerCrop: { size: 600, x: 50, y: 47 },  // Magnemite - zoom past name text into body
+    markerCrop: { size: 480, x: 55, y: 52 },  // Magnemite - zoom out 20%, right 5%, down 5%
     dailyCostUsd: 0.50
   }
 ];
