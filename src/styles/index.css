@@ -56,8 +56,8 @@ body {
 }
 
 @keyframes marker-pulse {
-  0%, 100% { box-shadow: 0 0 0 0px var(--el-color); opacity: 0.6; }
-  50% { box-shadow: 0 0 0 40px var(--el-color); opacity: 0; }
+  0%, 100% { box-shadow: 0 0 0 0px var(--el-color); background: var(--el-color); opacity: 0.3; }
+  50% { box-shadow: 0 0 0 30px var(--el-color); background: var(--el-color); opacity: 0; }
 }
 
 /* Dead agent marker */
