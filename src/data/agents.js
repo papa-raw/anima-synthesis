@@ -14,6 +14,7 @@ export const AGENTS = [
     grade: 'PSA 9',
     serial: '107645022',
     imageUrl: 'https://crimson-calm-beetle-499.mypinata.cloud/ipfs/bafybeialfpygghh6itmqsyk2z5pf6ex3wqpmwho7wobiuu7acma75iqnvq/psa107645022.jpg',
+    markerCrop: { size: 450, x: 52, y: 53 },  // Phanpy centered
     dailyCostUsd: 0.50
   },
   {
@@ -22,7 +23,7 @@ export const AGENTS = [
     element: 'fire',
     bioregionId: 'NA16',
     bioregionName: 'Cascade & Klamath Forests',
-    center: [-122.7, 45.5],  // Oregon / Portland
+    center: [-121.5, 44.0],  // Central Oregon (Bend area, on land)
     tokenSymbol: '$PONYTA',
     color: '#ef4444',
     beezieTokenId: '617',
@@ -31,6 +32,7 @@ export const AGENTS = [
     grade: 'TAG 8',
     serial: '5048257',
     imageUrl: 'https://crimson-calm-beetle-499.mypinata.cloud/ipfs/bafybeiguixsyidzx3yf3x3cil5efx3co6fiowqvxj5tewyy2dpcblxd5lq/tagj5048257.jpg',
+    markerCrop: { size: 500, x: 50, y: 45 },  // Ponyta art is upper half of card
     dailyCostUsd: 0.50
   },
   {
@@ -39,7 +41,7 @@ export const AGENTS = [
     element: 'electric',
     bioregionId: 'PA47',
     bioregionName: 'Japanese Forests',
-    center: [139.7, 35.7],  // Tokyo / Japan
+    center: [137.0, 36.5],  // Central Japan (Nagano area, clearly on land)
     tokenSymbol: '$MAGNET',
     color: '#eab308',
     beezieTokenId: '1285',
@@ -48,6 +50,7 @@ export const AGENTS = [
     grade: 'PSA 8',
     serial: '81978760',
     imageUrl: 'https://crimson-calm-beetle-499.mypinata.cloud/ipfs/bafybeib2gg7tfl7l66vj6x642gsexvmoc5auniqnh5h6chy2ldeue6xvxy/psa81978760.jpg',
+    markerCrop: { size: 500, x: 50, y: 48 },  // Magnemite centered in card art
     dailyCostUsd: 0.50
   }
 ];

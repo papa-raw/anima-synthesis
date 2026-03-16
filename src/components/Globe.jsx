@@ -182,8 +182,9 @@ export default function Globe({ agents, selectedAgent, onAgentSelect, dimmed }) 
       el.setAttribute('data-selected', selectedAgent?.id === agent.id ? 'true' : 'false');
 
       // Use background-image with zoom to crop into the Pokemon art inside the PSA slab
+      const crop = agent.markerCrop || { size: 450, x: 50, y: 50 };
       const coreStyle = agent.imageUrl
-        ? `background: url('${agent.imageUrl}') no-repeat 52% 53%; background-size: 450%; box-shadow: 0 0 12px ${agent.color};`
+        ? `background: url('${agent.imageUrl}') no-repeat ${crop.x}% ${crop.y}%; background-size: ${crop.size}%; box-shadow: 0 0 12px ${agent.color};`
         : `background: ${agent.color}; box-shadow: 0 0 12px ${agent.color};`;
       const coreContent = agent.imageUrl
         ? ''
