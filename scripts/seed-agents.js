@@ -5,7 +5,6 @@ import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// Agent definitions
 const AGENTS = [
   {
     id: 'agent-phanpy',
@@ -16,10 +15,26 @@ const AGENTS = [
     tokenSymbol: '$PHANPY',
     beezieTokenId: '2302'
   },
-  // Add agents 2 and 3 here after purchasing cards
+  {
+    id: 'agent-ponyta',
+    pokemon: 'Ponyta',
+    element: 'fire',
+    bioregionId: 'NA16',
+    bioregionName: 'Cascade & Klamath Forests',
+    tokenSymbol: '$PONYTA',
+    beezieTokenId: '617'
+  },
+  {
+    id: 'agent-magnemite',
+    pokemon: 'Magnemite',
+    element: 'electric',
+    bioregionId: 'PA47',
+    bioregionName: 'Japanese Forests',
+    tokenSymbol: '$MAGNET',
+    beezieTokenId: '1285'
+  }
 ];
 
-// Load wallets if available
 let wallets = [];
 try {
   const walletsPath = join(__dirname, '..', 'server', 'agents', 'wallets.json');
@@ -34,7 +49,7 @@ for (const agent of AGENTS) {
   const wallet = wallets.find(w => w.id === agent.id);
   db.prepare(`INSERT OR REPLACE INTO agents (id, pokemon, element, bioregion_id, bioregion_name, wallet_address, token_symbol, beezie_token_id, status)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'wild')`)
-    .run(agent.id, agent.pokemon, agent.element, agent.bioregionId, agent.bioregionName, wallet?.address || '', agent.tokenSymbol, agent.beezieTokenId || null);
+    .run(agent.id, agent.pokemon, agent.element, agent.bioregionId, agent.bioregionName, wallet?.address || '', agent.tokenSymbol, agent.beezieTokenId);
 
   console.log(`Seeded ${agent.id} (${agent.pokemon}) → ${agent.bioregionName}`);
 }

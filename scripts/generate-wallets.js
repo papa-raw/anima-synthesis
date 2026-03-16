@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const outPath = join(__dirname, '..', 'server', 'agents', 'wallets.json');
 
-const agents = ['agent-phanpy', 'agent-2', 'agent-3'];
+const agents = ['agent-phanpy', 'agent-ponyta', 'agent-magnemite'];
 
 const wallets = agents.map(id => {
   const privateKey = generatePrivateKey();

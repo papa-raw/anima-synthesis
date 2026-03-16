@@ -5,7 +5,7 @@ const styles = {
 };
 
 const sizeStyles = {
-  xs: 'text-[0.55rem] px-1.5 py-0.5',
+  xs: 'text-[11px] px-1.5 py-0.5',
   sm: 'text-[0.65rem] px-2 py-0.5',
 };
 

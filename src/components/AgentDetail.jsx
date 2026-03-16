@@ -17,7 +17,7 @@ function getRunwayDisplay(days, status, ethBalance) {
 function MetricCard({ label, value, subtitle, variant }) {
   return (
     <div className="bg-[#111a14] border border-[#1a2f1e] rounded-lg p-3">
-      <div className="text-[0.6rem] uppercase tracking-[0.08em] text-[#6b8f72] mb-1">{label}</div>
+      <div className="text-xs uppercase tracking-[0.08em] text-[#6b8f72] mb-1">{label}</div>
       <div className={`text-lg font-mono font-bold ${variant || 'text-[#e0ece2]'}`}>{value}</div>
       {subtitle && <div className="text-[0.7rem] text-[#6b8f72] font-mono">{subtitle}</div>}
     </div>
@@ -29,7 +29,7 @@ function Requirement({ met, text }) {
     <div className="flex items-center gap-2">
       {met ? (
         <div className="w-4 h-4 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
-          <span className="text-[0.5rem] text-emerald-400">✓</span>
+          <span className="text-xs text-emerald-400">✓</span>
         </div>
       ) : (
         <div className="w-4 h-4 rounded-full bg-[#111a14] border border-[#1a2f1e]" />
@@ -75,7 +75,7 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
             </div>
             <div className="flex items-center gap-1 mt-0.5">
               <MapPin size={10} className="text-[#6b8f72]" />
-              <span className="text-[0.6rem] text-[#6b8f72] truncate">{agent.bioregionName}</span>
+              <span className="text-xs text-[#6b8f72] truncate">{agent.bioregionName}</span>
             </div>
             {agent.wallet_address && (
               <div
@@ -84,7 +84,7 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
                 title="Click to copy wallet address"
               >
                 <Wallet size={10} className="text-[#6b8f72]" />
-                <span className="text-[0.55rem] font-mono text-[#6b8f72] group-hover:text-emerald-400 transition-colors">
+                <span className="text-xs font-mono text-[#6b8f72] group-hover:text-emerald-400 transition-colors">
                   {agent.wallet_address}
                 </span>
               </div>
@@ -135,7 +135,7 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
 
               {/* Requirements */}
               <div className="space-y-2 mb-4">
-                <div className="text-[0.6rem] uppercase tracking-wider text-[#6b8f72]">Capture Requirements</div>
+                <div className="text-xs uppercase tracking-wider text-[#6b8f72]">Capture Requirements</div>
                 <Requirement met={false} text="Hold $TGN on Base (funds tree planting)" />
                 <Requirement met={false} text="Physical presence in bioregion (GPS + Astral proof)" />
               </div>
@@ -148,20 +148,20 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
                 {agent.imageUrl ? (
                   <img
                     src={agent.imageUrl}
-                    className={`w-[320px] rounded-xl object-contain bg-[#111a14] ${agent.status === 'dead' ? 'grayscale opacity-50' : ''}`}
+                    className={`max-w-full max-h-[60vh] rounded-xl object-contain bg-[#111a14] ${agent.status === 'dead' ? 'grayscale opacity-50' : ''}`}
                     decoding="sync"
                     alt={agent.pokemon}
                   />
                 ) : (
-                  <div className="w-[320px] h-[448px] rounded-xl bg-[#111a14] border border-[#1a2f1e] flex items-center justify-center">
+                  <div className="w-full h-[50vh] rounded-xl bg-[#111a14] border border-[#1a2f1e] flex items-center justify-center">
                     <span className="text-6xl">{elementType.icon}</span>
                   </div>
                 )}
               </div>
               <div className="mt-3 text-center">
-                <div className="text-[0.6rem] uppercase tracking-wider text-[#6b8f72]">{agent.set} #{agent.cardNumber}</div>
-                <div className="text-[0.6rem] text-[#6b8f72]">{agent.grade} · Serial {agent.serial}</div>
-                <div className="text-[0.6rem] text-[#6b8f72] mt-1">Beezie Token #{agent.beezieTokenId}</div>
+                <div className="text-xs uppercase tracking-wider text-[#6b8f72]">{agent.set} #{agent.cardNumber}</div>
+                <div className="text-xs text-[#6b8f72]">{agent.grade} · Serial {agent.serial}</div>
+                <div className="text-xs text-[#6b8f72] mt-1">Beezie Token #{agent.beezieTokenId}</div>
               </div>
             </div>
           )}
@@ -173,7 +173,7 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
 
         {/* Bottom bar: capture + requirements */}
         <div className="border-t border-[#1a2f1e] p-3 space-y-2">
-          <div className="flex items-center gap-2 text-[0.6rem] text-[#6b8f72]">
+          <div className="flex items-center gap-2 text-xs text-[#6b8f72]">
             <TreePalm size={12} /> <span>Hold $TGN</span>
             <span className="text-[#1a2f1e]">|</span>
             <MapPin size={12} /> <span>Be in bioregion</span>
@@ -236,7 +236,7 @@ function SoulChat({ agent, walletAddress }) {
     <div className="flex flex-col h-full px-3 pb-2">
       <div className="flex items-center gap-1 py-2">
         <ChatCircleDots size={12} className="text-[#6b8f72]" />
-        <span className="text-[0.6rem] uppercase tracking-wider text-[#6b8f72]">Soul Link</span>
+        <span className="text-xs uppercase tracking-wider text-[#6b8f72]">Soul Link</span>
       </div>
       <div className="flex-1 min-h-0 bg-[#111a14] border border-[#1a2f1e] rounded-lg overflow-hidden flex flex-col">
         {/* Messages — fills available space */}
