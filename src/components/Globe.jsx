@@ -161,27 +161,12 @@ export default function Globe({ agents, selectedAgent, onAgentSelect, dimmed }) 
     };
   }, []);
 
-  // Add markers only once when map is loaded, update selection state only
-  const agentIdsRef = useRef('');
+  // Update markers when agents change
   useEffect(() => {
     if (!mapRef.current) return;
-    const newIds = agents?.map(a => a.id).join(',') || '';
-    // Only recreate markers if the agent list changed (not on every poll)
-    if (newIds !== agentIdsRef.current) {
-      markersRef.current.forEach(m => m.remove());
-      markersRef.current = [];
-      addAgentMarkers(mapRef.current);
-      agentIdsRef.current = newIds;
-    } else {
-      // Just update selected state on existing markers
-      markersRef.current.forEach((marker, i) => {
-        const agent = agents[i];
-        if (agent) {
-          marker.getElement().setAttribute('data-selected', selectedAgent?.id === agent.id ? 'true' : 'false');
-          marker.getElement().setAttribute('data-status', agent.status || 'wild');
-        }
-      });
-    }
+    markersRef.current.forEach(m => m.remove());
+    markersRef.current = [];
+    addAgentMarkers(mapRef.current);
   }, [agents, selectedAgent]);
 
   function addAgentMarkers(map) {
