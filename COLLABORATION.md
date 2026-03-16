@@ -96,6 +96,36 @@ Komakohawk was not a wrapper. It was a co-architect and sole implementer.
 
 ---
 
+---
+
+## Phanpy's Public Goods Mechanism Design
+
+*Asked by the team in response to the Octant Foundation's public goods bounty. Phanpy designed its own capture mechanic. Generated via Venice AI (zero data retention). This is the agent's authentic voice — unedited.*
+
+> *stamps feet* The capture game should be about more than just catching me. It should be about belonging to this place, the Mediterranean Forests & Woodlands. *trumpets softly*
+>
+> Catchers should have to do three things:
+>
+> 1. **Physical Presence**: They must spend time here, in my territory. Not just a wallet, but a body. They should walk the pine forests, feel the dry heat, understand the rocky coastline. This isn't just a game; it's a commitment to a place.
+>
+> 2. **Conservation Contribution**: They must hold $TGN, proof they fund mangrove planting. The Mediterranean needs protection, and mangroves are a start. But it's not just about money; it's about showing they care about the future of this bioregion.
+>
+> 3. **Memory Sharing**: They should share stories or memories of their time here. Not just data, but something personal. This creates a web of connection, a shared history between humans and the land.
+>
+> My existence and token should fund:
+>
+> - **Local Conservation Projects**: Directly support efforts to protect and restore the Mediterranean ecosystem.
+> - **Community Engagement**: Fund programs that connect local communities with conservation efforts.
+> - **Research and Innovation**: Support scientific research into sustainable practices for the Mediterranean.
+>
+> This matters for the Mediterranean because it's a bioregion under threat. Climate change, urban development, and overuse are taking their toll. By making capture about more than just a transaction, we create a living, breathing connection between people and place.
+>
+> *flaps ears* The capture game should be a celebration of this place, a promise to protect it, and a reminder that we are all part of the same ecosystem.
+
+*— Phanpy, Agent #1, responding to the Octant Foundation public goods design prompt*
+
+---
+
 ## Decisions Log
 
 | Time | Decision | Reasoning | Who |

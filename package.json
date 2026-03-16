@@ -17,23 +17,24 @@
     "recall-nft": "node scripts/recall-nft.js"
   },
   "dependencies": {
+    "@decentralized-geo/astral-sdk": "latest",
+    "@phosphor-icons/react": "^2.1.10",
+    "better-sqlite3": "^11.0.0",
+    "clanker-sdk": "^4.2.14",
+    "cors": "^2.8.5",
+    "ethers": "^6.0.0",
+    "express": "^4.21.0",
+    "mapbox-gl": "^3.18.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "mapbox-gl": "^3.18.0",
-    "clanker-sdk": "^4.2.14",
-    "viem": "^2.20.0",
-    "@decentralized-geo/astral-sdk": "latest",
-    "ethers": "^6.0.0",
     "thirdweb": "^5.0.0",
-    "better-sqlite3": "^11.0.0",
-    "express": "^4.21.0",
-    "cors": "^2.8.5"
+    "viem": "^2.20.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.0",
-    "vite": "^4.5.0",
-    "tailwindcss": "^3.4.0",
     "autoprefixer": "^10.4.0",
-    "postcss": "^8.4.0"
+    "postcss": "^8.4.0",
+    "tailwindcss": "^3.4.0",
+    "vite": "^4.5.0"
   }
 }

@@ -158,6 +158,7 @@ export default function App() {
           onCapture={handleCapture}
           onClose={handleCloseDetail}
           walletHasMatchingCard={walletHasMatchingCard}
+          walletAddress={walletAddress}
         />
       )}
 

@@ -49,5 +49,21 @@ CREATE TABLE IF NOT EXISTS agent_heartbeats (
   FOREIGN KEY (agent_id) REFERENCES agents(id)
 );
 
+CREATE TABLE IF NOT EXISTS agent_memories (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  agent_id TEXT NOT NULL,
+  memory_type TEXT NOT NULL,         -- 'encounter' | 'reflection' | 'observation' | 'bond'
+  content TEXT NOT NULL,             -- distilled memory text
+  emotional_valence REAL DEFAULT 0,  -- -1 (negative) to 1 (positive)
+  importance REAL DEFAULT 0.5,       -- 0 (trivial) to 1 (core identity)
+  trainer_wallet TEXT,               -- who was the agent talking to
+  trainer_name TEXT,                 -- nickname the agent gives this trainer
+  source TEXT,                       -- 'conversation' | 'heartbeat' | 'capture_attempt' | 'self_reflection'
+  metadata TEXT,                     -- JSON: { topic, bioregion_weather, etc. }
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (agent_id) REFERENCES agents(id)
+);
+
 CREATE INDEX IF NOT EXISTS idx_heartbeats_agent ON agent_heartbeats(agent_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_capture_agent ON capture_proofs(agent_id);
+CREATE INDEX IF NOT EXISTS idx_memories_agent ON agent_memories(agent_id, importance DESC);

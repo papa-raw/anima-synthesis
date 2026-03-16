@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import StatusPill from './StatusPill.jsx';
 import { ELEMENT_TYPES } from '../data/types.js';
-// Soul chat goes through server (agent pays for its own inference)
+import { Wallet, Timer, Coin, Users, Lightning, TreePalm, MapPin, ChatCircleDots, X } from '@phosphor-icons/react';
 
 function getRunwayDisplay(days, status, ethBalance) {
   // Unfunded agents aren't dead — they're waiting
@@ -39,7 +39,7 @@ function Requirement({ met, text }) {
   );
 }
 
-export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchingCard }) {
+export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchingCard, walletAddress }) {
   if (!agent) return null;
 
   const runway = getRunwayDisplay(agent.runwayDays, agent.status, agent.ethBalance);
@@ -53,87 +53,86 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
       <div className="fixed inset-0 z-30" onClick={onClose} />
 
       {/* Panel — fits between header (48px) and dock (80px) */}
-      <div className="fixed top-12 right-0 z-40 bottom-20 w-[520px] bg-[#0a0f0a] border-l border-[#1a2f1e] overflow-y-auto transition-transform duration-300">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-[#1a2f1e]">
-          <div className="flex items-center gap-3">
-            <h2 className="text-lg font-bold text-[#e0ece2]">{agent.pokemon}</h2>
-            <StatusPill status={agent.status || 'wild'} />
-          </div>
-          <button onClick={onClose} className="text-[#6b8f72] hover:text-[#e0ece2] text-xl">✕</button>
-        </div>
-
-        {/* Card + Metrics side by side */}
-        <div className="p-4 flex gap-4">
-          {/* Card image — compact */}
-          <div className="flex-shrink-0 relative" style={{ filter: `drop-shadow(0 0 16px ${agent.color}33)` }}>
+      <div className="fixed top-12 right-0 z-40 bottom-20 w-[520px] bg-[#0a0f0a] border-l border-[#1a2f1e] flex flex-col transition-transform duration-300">
+        {/* Compact header: card thumbnail + name + stats inline */}
+        <div className="flex items-center gap-3 p-3 border-b border-[#1a2f1e]">
+          {/* Card thumbnail */}
+          <div className="flex-shrink-0 w-12 h-16 rounded overflow-hidden bg-[#111a14]" style={{ filter: `drop-shadow(0 0 8px ${agent.color}33)` }}>
             {agent.imageUrl ? (
-              <img
-                src={agent.imageUrl}
-                onError={(e) => { if (agent.imageUrlFallback) e.target.src = agent.imageUrlFallback; }}
-                className={`w-[140px] h-[196px] rounded-lg object-cover bg-[#111a14] ${agent.status === 'dead' ? 'grayscale opacity-50' : ''}`}
-                decoding="sync"
-                alt={agent.pokemon}
-              />
+              <img src={agent.imageUrl} className="w-full h-full object-cover" decoding="sync" alt={agent.pokemon} />
             ) : (
-              <div className="w-[140px] h-[196px] rounded-lg bg-[#111a14] border border-[#1a2f1e] flex items-center justify-center">
-                <span className="text-3xl">{elementType.icon}</span>
-              </div>
-            )}
-            {agent.status === 'dead' && (
-              <div className="absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center">
-                <span className="text-lg font-bold text-red-500">DEAD</span>
-              </div>
+              <div className="w-full h-full flex items-center justify-center text-lg">{elementType.icon}</div>
             )}
           </div>
 
-          {/* Right side: element + key metrics */}
-          <div className="flex-1 flex flex-col gap-2">
+          {/* Name + status + location */}
+          <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full" style={{ background: agent.color }} />
-              <span className="text-[0.6rem] uppercase tracking-wider text-[#6b8f72]">
-                {agent.element} · {agent.bioregionName}
-              </span>
+              <h2 className="text-base font-bold text-[#e0ece2]">{agent.pokemon}</h2>
+              <StatusPill status={agent.status || 'wild'} size="xs" />
             </div>
-            <MetricCard label="TREASURY" value={`${(agent.ethBalance || 0).toFixed(4)} ETH`} subtitle={`~$${usdValue}`} />
-            <MetricCard label={runway.label} value={runway.value} variant={`${runway.variant} ${runway.animate ? 'animate-pulse' : ''}`} />
+            <div className="flex items-center gap-1 mt-0.5">
+              <MapPin size={10} className="text-[#6b8f72]" />
+              <span className="text-[0.6rem] text-[#6b8f72] truncate">{agent.bioregionName}</span>
+            </div>
           </div>
-        </div>
 
-        {/* Secondary metrics */}
-        <div className="grid grid-cols-3 gap-2 px-4 pb-4">
-          <MetricCard label="TOKEN" value={agent.tokenSymbol || '--'} />
-          <MetricCard label="HOLDERS" value={agent.holderCount || '--'} />
-          <MetricCard label="DAILY COST" value={`$${agent.dailyCostUsd || 0.50}`} />
-        </div>
-
-        {/* Capture CTA */}
-        <div className="px-4 pb-4">
-          <button
-            onClick={onCapture}
-            disabled={agent.status !== 'wild'}
-            className={`w-full py-3 rounded-lg font-bold text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed bg-gradient-to-r ${elementType.gradient} hover:shadow-lg`}
-            style={{ '--tw-shadow-color': `${agent.color}33` }}
-          >
-            {agent.status === 'wild' ? 'CAPTURE THIS AGENT' : agent.status === 'captured' ? 'ALREADY CAPTURED' : 'AGENT IS DEAD'}
+          {/* Close */}
+          <button onClick={onClose} className="text-[#6b8f72] hover:text-[#e0ece2]">
+            <X size={18} />
           </button>
         </div>
 
-        {/* Requirements */}
-        <div className="px-4 pb-4 space-y-2">
-          <div className="text-[0.65rem] uppercase tracking-wider text-[#6b8f72] mb-1">Requirements</div>
-          <Requirement met={false} text="Hold $TGN on Base (funds tree planting)" />
-          <Requirement met={false} text="Physical presence in bioregion (GPS + Astral proof)" />
+        {/* Compact metric strip */}
+        <div className="flex items-center gap-1 px-3 py-2 border-b border-[#1a2f1e] text-[0.65rem]">
+          <div className="flex items-center gap-1 px-2 py-1 rounded bg-[#111a14]" title="Treasury">
+            <Wallet size={12} className="text-[#6b8f72]" />
+            <span className="font-mono text-[#e0ece2]">{(agent.ethBalance || 0).toFixed(4)}</span>
+          </div>
+          <div className={`flex items-center gap-1 px-2 py-1 rounded bg-[#111a14] ${runway.variant}`} title="Runway">
+            <Timer size={12} />
+            <span className="font-mono">{runway.value}</span>
+          </div>
+          <div className="flex items-center gap-1 px-2 py-1 rounded bg-[#111a14]" title="Token">
+            <Coin size={12} className="text-[#6b8f72]" />
+            <span className="font-mono text-[#e0ece2]">{agent.tokenSymbol || '--'}</span>
+          </div>
+          <div className="flex items-center gap-1 px-2 py-1 rounded bg-[#111a14]" title="Holders">
+            <Users size={12} className="text-[#6b8f72]" />
+            <span className="font-mono text-[#e0ece2]">{agent.holderCount || '--'}</span>
+          </div>
+          <div className="flex items-center gap-1 px-2 py-1 rounded bg-[#111a14]" title="Daily cost">
+            <Lightning size={12} className="text-[#6b8f72]" />
+            <span className="font-mono text-[#e0ece2]">${agent.dailyCostUsd || 0.50}</span>
+          </div>
         </div>
 
-        {/* Soul Chat */}
-        <SoulChat agent={agent} />
+        {/* Soul Chat — THE HERO, takes remaining space */}
+        <div className="flex-1 min-h-0">
+          <SoulChat agent={agent} walletAddress={walletAddress} />
+        </div>
+
+        {/* Bottom bar: capture + requirements */}
+        <div className="border-t border-[#1a2f1e] p-3 space-y-2">
+          <div className="flex items-center gap-2 text-[0.6rem] text-[#6b8f72]">
+            <TreePalm size={12} /> <span>Hold $TGN</span>
+            <span className="text-[#1a2f1e]">|</span>
+            <MapPin size={12} /> <span>Be in bioregion</span>
+          </div>
+          <button
+            onClick={onCapture}
+            disabled={agent.status !== 'wild'}
+            className={`w-full py-2 rounded-lg font-bold text-sm text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed bg-gradient-to-r ${elementType.gradient}`}
+          >
+            {agent.status === 'wild' ? 'CAPTURE' : agent.status === 'captured' ? 'CAPTURED' : 'DEAD'}
+          </button>
+        </div>
       </div>
     </>
   );
 }
 
-function SoulChat({ agent }) {
+function SoulChat({ agent, walletAddress }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -164,7 +163,7 @@ function SoulChat({ agent }) {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ agentId: agent.id, message: userMsg, history })
+        body: JSON.stringify({ agentId: agent.id, message: userMsg, history, walletAddress })
       });
       const data = await res.json();
       setMessages(m => [...m, { role: 'agent', text: data.response || `*${agent.pokemon} stares at you silently*` }]);
@@ -175,11 +174,14 @@ function SoulChat({ agent }) {
   }
 
   return (
-    <div className="px-4 pb-4">
-      <div className="text-[0.65rem] uppercase tracking-wider text-[#6b8f72] mb-2">Soul Link</div>
-      <div className="bg-[#111a14] border border-[#1a2f1e] rounded-lg overflow-hidden">
-        {/* Messages */}
-        <div ref={scrollRef} className="h-48 overflow-y-auto p-3 space-y-2 scrollbar-hide">
+    <div className="flex flex-col h-full px-3 pb-2">
+      <div className="flex items-center gap-1 py-2">
+        <ChatCircleDots size={12} className="text-[#6b8f72]" />
+        <span className="text-[0.6rem] uppercase tracking-wider text-[#6b8f72]">Soul Link</span>
+      </div>
+      <div className="flex-1 min-h-0 bg-[#111a14] border border-[#1a2f1e] rounded-lg overflow-hidden flex flex-col">
+        {/* Messages — fills available space */}
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 space-y-2 scrollbar-hide">
           {messages.map((msg, i) => (
             <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-[80%] px-3 py-1.5 rounded-lg text-sm ${

@@ -28,7 +28,7 @@ export async function agentInference(bankrApiKey, systemPrompt, userPrompt, opti
       'X-API-Key': bankrApiKey
     },
     body: JSON.stringify({
-      model: options.model || 'venice-uncensored',
+      model: options.model || 'gemini-2.5-flash',  // Cheapest Bankr model; venice-uncensored not available on Bankr
       max_tokens: options.maxTokens || 200,
       messages: [
         { role: 'system', content: systemPrompt },
