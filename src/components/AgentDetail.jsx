@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import StatusPill from './StatusPill.jsx';
 import { ELEMENT_TYPES } from '../data/types.js';
-import { Wallet, Timer, Coin, Users, Lightning, TreePalm, MapPin, ChatCircleDots, X } from '@phosphor-icons/react';
+import { Wallet, Timer, Coin, Users, Lightning, TreePalm, MapPin, ChatCircleDots, X, Info } from '@phosphor-icons/react';
 
 function getRunwayDisplay(days, status, ethBalance) {
   // Unfunded agents aren't dead — they're waiting
@@ -40,10 +40,12 @@ function Requirement({ met, text }) {
 }
 
 export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchingCard, walletAddress }) {
+  const [tab, setTab] = useState('info'); // 'info' | 'soul'
+
   if (!agent) return null;
 
   const runway = getRunwayDisplay(agent.runwayDays, agent.status, agent.ethBalance);
-  const ethPrice = 2500; // TODO: fetch from CoinGecko
+  const ethPrice = 2500;
   const usdValue = ((agent.ethBalance || 0) * ethPrice).toFixed(2);
   const elementType = ELEMENT_TYPES[agent.element] || ELEMENT_TYPES.normal;
 
@@ -95,33 +97,64 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
           </button>
         </div>
 
-        {/* Compact metric strip */}
-        <div className="flex items-center gap-1 px-3 py-2 border-b border-[#1a2f1e] text-[0.65rem]">
-          <div className="flex items-center gap-1 px-2 py-1 rounded bg-[#111a14]" title="Treasury">
-            <Wallet size={12} className="text-[#6b8f72]" />
-            <span className="font-mono text-[#e0ece2]">{(agent.ethBalance || 0).toFixed(4)}</span>
-          </div>
-          <div className={`flex items-center gap-1 px-2 py-1 rounded bg-[#111a14] ${runway.variant}`} title="Runway">
-            <Timer size={12} />
-            <span className="font-mono">{runway.value}</span>
-          </div>
-          <div className="flex items-center gap-1 px-2 py-1 rounded bg-[#111a14]" title="Token">
-            <Coin size={12} className="text-[#6b8f72]" />
-            <span className="font-mono text-[#e0ece2]">{agent.tokenSymbol || '--'}</span>
-          </div>
-          <div className="flex items-center gap-1 px-2 py-1 rounded bg-[#111a14]" title="Holders">
-            <Users size={12} className="text-[#6b8f72]" />
-            <span className="font-mono text-[#e0ece2]">{agent.holderCount || '--'}</span>
-          </div>
-          <div className="flex items-center gap-1 px-2 py-1 rounded bg-[#111a14]" title="Daily cost">
-            <Lightning size={12} className="text-[#6b8f72]" />
-            <span className="font-mono text-[#e0ece2]">${agent.dailyCostUsd || 0.50}</span>
-          </div>
+        {/* Tabs */}
+        <div className="flex border-b border-[#1a2f1e]">
+          <button
+            onClick={() => setTab('info')}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium transition-colors ${tab === 'info' ? 'text-emerald-400 border-b-2 border-emerald-400' : 'text-[#6b8f72] hover:text-[#e0ece2]'}`}
+          >
+            <Info size={14} /> Agent
+          </button>
+          <button
+            onClick={() => setTab('soul')}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium transition-colors ${tab === 'soul' ? 'text-emerald-400 border-b-2 border-emerald-400' : 'text-[#6b8f72] hover:text-[#e0ece2]'}`}
+          >
+            <ChatCircleDots size={14} /> Soul Link
+          </button>
         </div>
 
-        {/* Soul Chat — THE HERO, takes remaining space */}
-        <div className="flex-1 min-h-0">
-          <SoulChat agent={agent} walletAddress={walletAddress} />
+        {/* Tab content */}
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          {tab === 'info' && (
+            <div className="p-4">
+              {/* Large card art */}
+              <div className="flex justify-center mb-4">
+                <div className="relative" style={{ filter: `drop-shadow(0 0 20px ${agent.color}44)` }}>
+                  {agent.imageUrl ? (
+                    <img
+                      src={agent.imageUrl}
+                      className={`w-[280px] h-[392px] rounded-xl object-cover bg-[#111a14] ${agent.status === 'dead' ? 'grayscale opacity-50' : ''}`}
+                      decoding="sync"
+                      alt={agent.pokemon}
+                    />
+                  ) : (
+                    <div className="w-[280px] h-[392px] rounded-xl bg-[#111a14] border border-[#1a2f1e] flex items-center justify-center">
+                      <span className="text-5xl">{elementType.icon}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Metrics grid — bigger */}
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <MetricCard label="TREASURY" value={`${(agent.ethBalance || 0).toFixed(4)} ETH`} subtitle={`~$${usdValue}`} />
+                <MetricCard label={runway.label} value={runway.value} variant={`${runway.variant} ${runway.animate ? 'animate-pulse' : ''}`} />
+                <MetricCard label="TOKEN" value={agent.tokenSymbol || '--'} />
+                <MetricCard label="HOLDERS" value={agent.holderCount || '--'} />
+              </div>
+
+              {/* Requirements */}
+              <div className="space-y-2 mb-4">
+                <div className="text-[0.6rem] uppercase tracking-wider text-[#6b8f72]">Capture Requirements</div>
+                <Requirement met={false} text="Hold $TGN on Base (funds tree planting)" />
+                <Requirement met={false} text="Physical presence in bioregion (GPS + Astral proof)" />
+              </div>
+            </div>
+          )}
+
+          {tab === 'soul' && (
+            <SoulChat agent={agent} walletAddress={walletAddress} />
+          )}
         </div>
 
         {/* Bottom bar: capture + requirements */}

@@ -30,8 +30,8 @@ body {
 /* Agent markers on globe */
 .agent-marker {
   position: relative;
-  width: 64px;
-  height: 64px;
+  width: 160px;
+  height: 160px;
   cursor: pointer;
 }
 .marker-ring {
@@ -46,13 +46,13 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 40px;
-  height: 40px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid rgba(255,255,255,0.4);
+  border: 3px solid rgba(255,255,255,0.4);
   overflow: hidden;
 }
 
