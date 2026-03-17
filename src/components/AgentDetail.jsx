@@ -42,7 +42,7 @@ function Requirement({ met, text }) {
 
 export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchingCard, walletAddress }) {
   const [tab, setTab] = useState('info'); // 'info' | 'soul'
-  const [tgnBalance, setTgnBalance] = useState(null);
+  const [azusdBalance, setTgnBalance] = useState(null);
 
   useEffect(() => {
     if (!walletAddress) { setTgnBalance(null); return; }
@@ -143,7 +143,7 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
               {/* Requirements */}
               <div className="space-y-2 mb-4">
                 <div className="text-xs uppercase tracking-wider text-[#6b8f72]">Capture Requirements</div>
-                <Requirement met={!!(tgnBalance && tgnBalance.holds)} text={`Hold ≥${AZUSD_INFO.required} AZUSD on Base`} />
+                <Requirement met={!!(azusdBalance && azusdBalance.holds)} text={`Hold ≥${AZUSD_INFO.required} AZUSD on Base`} />
                 <Requirement met={false} text="Physical presence in bioregion (GPS + Astral proof)" />
               </div>
             </div>
@@ -182,9 +182,9 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
         <div className="border-t border-[#1a2f1e] p-3 space-y-2">
           <div className="flex items-center gap-2 text-xs text-[#6b8f72]">
             <TreePalm size={12} />
-            {walletAddress && tgnBalance ? (
-              <span className={tgnBalance.holds ? 'text-emerald-400' : 'text-[#6b8f72]'}>
-                {tgnBalance.holds ? `${parseFloat(tgnBalance.balance).toFixed(2)} AZUSD` : '0 AZUSD'}
+            {walletAddress && azusdBalance ? (
+              <span className={azusdBalance.holds ? 'text-emerald-400' : 'text-[#6b8f72]'}>
+                {azusdBalance.holds ? `${parseFloat(azusdBalance.balance).toFixed(2)} AZUSD` : '0 AZUSD'}
               </span>
             ) : (
               <span>Hold AZUSD</span>
@@ -192,7 +192,7 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
             <span className="text-[#1a2f1e]">|</span>
             <MapPin size={12} /> <span>Be in bioregion</span>
           </div>
-          {walletAddress && tgnBalance && !tgnBalance.holds && (
+          {walletAddress && azusdBalance && !azusdBalance.holds && (
             <a href={AZUSD_INFO.mintUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-[0.7rem] text-[#6b8f72] hover:text-emerald-400 transition-colors">
               <Coin size={10} /> Hold ≥{AZUSD_INFO.required} AZUSD to capture — mint at app.azos.finance
             </a>

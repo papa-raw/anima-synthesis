@@ -61,9 +61,6 @@ export async function checkAzusdBalance(walletAddress) {
   }
 }
 
-// Keep old export name for backward compatibility during migration
-export const checkTgnBalance = checkAzusdBalance;
-
 export const AZUSD_INFO = {
   name: 'Azos Stablecoin',
   symbol: 'AZUSD',
@@ -73,8 +70,6 @@ export const AZUSD_INFO = {
   required: MIN_AZUSD_REQUIRED,
   mintUrl: 'https://app.azos.finance/',
   docsUrl: 'https://docs.azos.finance/docs/intro/',
-  impact: 'Decentralized stablecoin backed by diversified Base collateral (cbBTC, cbETH, AERO, WELL)'
+  impact: 'Decentralized overcollateralized stablecoin on Base'
 };
 
-// Backward compat
-export const TGN_INFO = AZUSD_INFO;

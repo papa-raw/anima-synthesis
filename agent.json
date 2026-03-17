@@ -151,7 +151,7 @@
     {
       "name": "Azos Finance",
       "type": "capture-gate",
-      "description": "AZUSD stablecoin holding required for capture (≥5 AZUSD)"
+      "description": "AZUSD decentralized stablecoin holding required for capture (≥5 AZUSD)"
     }
   ],
   "collaboration": {

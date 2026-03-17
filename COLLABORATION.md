@@ -148,7 +148,7 @@ Komakohawk was not a wrapper. It was a co-architect and sole implementer.
 | Mar 17 11:40 | Ponyta + Magnemite souls written | Character definitions matching Phanpy's Descola animist framework | Agent authored |
 | Mar 17 11:40 | Conservation display in detail panel | $TGN balance shown with explanation of tree planting mechanic | Agent implemented |
 | Mar 17 11:40 | Memory formation indicator | "memory forming..." text appears after agent chat responses | Agent implemented |
-| Mar 17 12:00 | $TGN → AZUSD capture gate | Replaced Treegens ($TGN, any amount) with Azos stablecoin (AZUSD, ≥5). AZUSD backed by KLIMA (carbon), WETH, USDGLO (impact), HLSP. Tags all Azos collaterals as promotion. | Human directed, agent implemented |
+| Mar 17 12:00 | $TGN → AZUSD capture gate | Replaced Treegens ($TGN, any amount) with Azos stablecoin (AZUSD, ≥5). Decentralized overcollateralized stablecoin on Base. | Human directed, agent implemented |
 | Mar 17 12:00 | Server-side onchain verification | Added AZUSD balance check + Beezie NFT ownership verification to capture route. No more trusting frontend. Fails open on RPC error. | Agent implemented |
 | Mar 17 12:00 | Security audit | Identified 5 vulnerabilities, plugged 3 (AZUSD, Beezie, bioregion server-side). Remaining: GPS spoofing, wallet signature auth — acknowledged in docs as post-hackathon. | Agent audited |
 | Mar 17 12:00 | RainbowKit evaluation | Azos uses RainbowKit (wagmi + viem) for wallet connect. Evaluated for adoption — too risky this close to submission, noted as post-hackathon upgrade. | Agent researched, human confirmed defer |
@@ -182,7 +182,7 @@ Komakohawk was not a wrapper. It was a co-architect and sole implementer.
 - **11:30** — Parallel agent sprint: Ponyta + Magnemite soul files, server-side bioregion verification (turf.js), conservation display in detail panel, memory formation UI indicator. All running concurrently.
 - **11:45** — Collaboration log updated for judges
 - **12:00** — Security audit: traced all trust boundaries in capture route. Found 5 holes (GPS spoofing, no server-side token/NFT check, no wallet auth, simulated proofs accepted). Plugged 3: added server-side AZUSD + Beezie onchain verification via viem RPC reads, bioregion already done.
-- **12:15** — Swapped $TGN (Treegens) → AZUSD (Azos Finance) as capture gate. ≥5 AZUSD required. Updated conservationService.js, CaptureFlow.jsx, AgentDetail.jsx, capture.js, README.md. AZUSD backed by KLIMA (carbon credits), WETH, USDGLO (impact stablecoin), HLSP — tags all Azos collaterals as promotion.
+- **12:15** — Swapped $TGN (Treegens) → AZUSD (Azos Finance) as capture gate. ≥5 AZUSD required. Updated conservationService.js, CaptureFlow.jsx, AgentDetail.jsx, capture.js, README.md.
 - **12:20** — Evaluated Azos RainbowKit wallet component for adoption. Deferred — too risky pre-submission.
 - **12:30** — Compliance audit against hackathon rules. Flagged: simulated Astral proofs violate "no mocks" rule, missing ERC-8004 identity (Protocol Labs $16K), agentic judging feedback is Mar 18 (tomorrow). Dropped Locus bounty (weak integration). Prioritized: fix Astral fallback, add ERC-8004 manifest, push to GitHub.
 - **12:40** — Gated simulated Astral proofs behind DEMO_MODE. Production capture flow now requires real attestation or fails explicitly.

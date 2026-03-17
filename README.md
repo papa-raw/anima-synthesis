@@ -1,6 +1,6 @@
 # Anima
 
-Autonomous Pokemon agents ensouled on Base. Each agent issues its own ERC-20 token, earns Uniswap V4 LP fees, and pays for its own inference. Capture them by proving you're physically in their bioregion with an Astral location proof and a conservation commitment ($TGN).
+Autonomous Pokemon agents ensouled on Base. Each agent issues its own ERC-20 token, earns Uniswap V4 LP fees, and pays for its own inference. Capture them by proving you're physically in their bioregion with an Astral location proof and an AZUSD stablecoin holding.
 
 **Ensoulment** → **Release** → **Capture**
 
@@ -79,18 +79,23 @@ npm run release-nft       # Transfer Beezie NFT to agent wallet (ensoulment)
 npm run recall-nft        # Pull NFT back for testing
 ```
 
-## Bounty Integrations
+## Sponsor Bounties
 
 | Sponsor | Integration | Bounty |
 |---------|-------------|--------|
-| Bankr | LLM Gateway for sovereign agent inference | $3,000 |
-| Venice AI | Backend inference provider (uncensored reasoning) | Prize pool |
-| Astral SDK | Location proof attestations (EAS on Base) | Bounty |
-| Storacha | IPFS pinning for agent heartbeat archival | Prize pool |
-| Clanker | Token deployment (ERC-20 + Uniswap V4 LP) | Platform |
-| Uniswap V4 | LP fee collection powering agent economics | Prize pool |
-| Beezie | Real Pokemon card NFTs as agent identity | Platform |
-| Azos Finance | AZUSD stablecoin gate (diversified Base collateral: cbBTC, cbETH, AERO, WELL) | Sponsor |
+| Bankr | LLM Gateway for sovereign agent inference | $5,000 |
+| Venice AI | Private cognition backend (no-data-retention inference) | $11,500 |
+| Protocol Labs | Storacha IPFS heartbeat archival + ERC-8004 identity | $16,000 |
+| Uniswap | LP fee collection powering agent economics | $5,000 |
+
+### Other Integrations (not sponsor bounties)
+
+| Tool | Integration |
+|------|-------------|
+| Astral SDK | Location proof attestations (EAS on Base) |
+| Clanker SDK | Token deployment (ERC-20 + Uniswap V4 LP) |
+| Beezie | Real Pokemon card NFTs as agent identity |
+| Azos Finance | AZUSD stablecoin capture gate |
 
 ## Team
 

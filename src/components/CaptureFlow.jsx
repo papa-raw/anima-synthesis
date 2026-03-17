@@ -44,7 +44,7 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
   const [states, setStates] = useState({
     conservation: 'pending', gps: 'pending', bioregion: 'pending', proof: 'pending'
   });
-  const [tgnBalance, setTgnBalance] = useState(null);
+  const [azusdBalance, setTgnBalance] = useState(null);
   const [location, _setLocation] = useState(null);
   const locationRef = useRef(null);
   const setLocation = (loc) => { locationRef.current = loc; _setLocation(loc); };
@@ -177,9 +177,9 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
                 <span className="text-[#6b8f72] text-sm">Checking AZUSD balance...</span>
               </div>
             )}
-            {states.conservation === 'verified' && tgnBalance && (
+            {states.conservation === 'verified' && azusdBalance && (
               <div className="text-emerald-400 text-sm font-medium">
-                Holding {parseFloat(tgnBalance).toFixed(2)} AZUSD — stable collateral verified
+                Holding {parseFloat(azusdBalance).toFixed(2)} AZUSD — stable collateral verified
               </div>
             )}
             {states.conservation === 'failed' && (
