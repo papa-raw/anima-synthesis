@@ -41,7 +41,7 @@ export const AGENTS = [
     element: 'electric',
     bioregionId: 'PA47',
     bioregionName: 'Japanese Forests',
-    center: [136.6, 36.2],  // Central Honshu, Japan
+    center: [139.7, 35.7],  // Tokyo, Japan
     tokenSymbol: '$MAGNET',
     color: '#eab308',
     beezieTokenId: '1285',
