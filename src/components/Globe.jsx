@@ -174,7 +174,6 @@ export default function Globe({ agents, selectedAgent, onAgentSelect, dimmed }) 
 
     agents.forEach(agent => {
       if (!agent.center || (agent.center[0] === 0 && agent.center[1] === 0)) return;
-      console.log(`Marker ${agent.id}: center=[${agent.center}], type=${typeof agent.center[0]}`);
 
       const el = document.createElement('div');
       el.className = 'agent-marker';
@@ -211,7 +210,7 @@ export default function Globe({ agents, selectedAgent, onAgentSelect, dimmed }) 
         });
       });
 
-      const marker = new mapboxgl.Marker({ element: el, anchor: 'center', rotationAlignment: 'map', pitchAlignment: 'map' })
+      const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
         .setLngLat(agent.center)
         .addTo(map);
 
