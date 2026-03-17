@@ -21,9 +21,9 @@ export const AGENTS = [
     id: 'agent-ponyta',
     pokemon: 'Ponyta',
     element: 'fire',
-    bioregionId: 'NA16',
-    bioregionName: 'Cascade & Klamath Forests',
-    center: [-120.5, 43.8],  // Oregon high desert, well inland
+    bioregionId: 'NA10',
+    bioregionName: 'Northeast US Forests',
+    center: [-74.0, 40.7],  // New York City
     tokenSymbol: '$PONYTA',
     color: '#ef4444',
     beezieTokenId: '617',
@@ -41,7 +41,7 @@ export const AGENTS = [
     element: 'electric',
     bioregionId: 'PA47',
     bioregionName: 'Japanese Forests',
-    center: [139.7, 35.7],  // Tokyo, Japan
+    center: [136.6, 36.2],  // Central Honshu, Japan
     tokenSymbol: '$MAGNET',
     color: '#eab308',
     beezieTokenId: '1285',
@@ -50,7 +50,7 @@ export const AGENTS = [
     grade: 'PSA 8',
     serial: '81978760',
     imageUrl: 'https://crimson-calm-beetle-499.mypinata.cloud/ipfs/bafybeib2gg7tfl7l66vj6x642gsexvmoc5auniqnh5h6chy2ldeue6xvxy/psa81978760.jpg',
-    markerCrop: { size: 530, x: 45, y: 43.5 },  // Magnemite - up from 45
+    markerCrop: { size: 453, x: 45, y: 49 },  // Magnemite
     dailyCostUsd: 0.50
   }
 ];

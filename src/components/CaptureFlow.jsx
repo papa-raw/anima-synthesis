@@ -3,7 +3,7 @@ import StatusPill from './StatusPill.jsx';
 import { getMatchingCard } from '../services/beezieService.js';
 import { getCurrentPosition, createLocationProof, formatCoordinates } from '../services/astralService.js';
 import { findBioregionAtCoordinate } from '../services/bioregionService.js';
-import { checkTgnBalance, TGN_INFO } from '../services/conservationService.js';
+import { checkAzusdBalance, AZUSD_INFO } from '../services/conservationService.js';
 import { submitCapture } from '../services/agentApi.js';
 
 function CaptureStep({ num, label, state, children }) {
@@ -37,8 +37,8 @@ function CaptureStep({ num, label, state, children }) {
 }
 
 export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel, demoMode }) {
-  // Demo mode only bypasses wallet checks (NFT + TGN). GPS, bioregion, and Astral proofs are ALWAYS real.
-  const demoWallet = demoMode; // bypass NFT + TGN checks
+  // Demo mode only bypasses wallet checks (NFT + AZUSD). GPS, bioregion, and Astral proofs are ALWAYS real.
+  const demoWallet = demoMode; // bypass NFT + AZUSD checks
   const demoLocation = false;  // NEVER fake GPS — we want real proofs
   const [step, setStep] = useState(0); // 0-3 (4 steps)
   const [states, setStates] = useState({
@@ -59,7 +59,7 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
   async function executeStep(stepNum) {
     setError(null);
 
-    // Step 1: Conservation gate ($TGN)
+    // Step 1: Conservation gate (AZUSD)
     if (stepNum === 0) {
       setStates(s => ({ ...s, conservation: 'checking' }));
       if (demoWallet) {
@@ -70,7 +70,7 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
         return;
       }
       try {
-        const result = await checkTgnBalance(walletAddress);
+        const result = await checkAzusdBalance(walletAddress);
         if (result.holds) {
           setTgnBalance(result.balance);
           setStates(s => ({ ...s, conservation: 'verified' }));
@@ -78,7 +78,7 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
           setTimeout(() => executeStep(1), 500);
         } else {
           setStates(s => ({ ...s, conservation: 'failed' }));
-          setError('No $TGN found. Buy $TGN on Uniswap to fund tree planting.');
+          setError(`Need ≥${AZUSD_INFO.required} AZUSD. Mint at app.azos.finance`);
         }
       } catch (e) {
         setStates(s => ({ ...s, conservation: 'failed' }));
@@ -174,18 +174,18 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
             {states.conservation === 'checking' && (
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#22c55e', borderTopColor: 'transparent' }} />
-                <span className="text-[#6b8f72] text-sm">Checking $TGN balance (Treegens)...</span>
+                <span className="text-[#6b8f72] text-sm">Checking AZUSD balance...</span>
               </div>
             )}
             {states.conservation === 'verified' && tgnBalance && (
               <div className="text-emerald-400 text-sm font-medium">
-                Holding {parseFloat(tgnBalance).toFixed(2)} $TGN — funding mangrove planting 🌱
+                Holding {parseFloat(tgnBalance).toFixed(2)} AZUSD — stable collateral verified
               </div>
             )}
             {states.conservation === 'failed' && (
               <div className="text-sm">
                 <span className="text-red-400">{error}</span>
-                <a href={TGN_INFO.buyUrl} target="_blank" rel="noreferrer" className="text-emerald-400 ml-2 hover:underline">Buy $TGN on Uniswap</a>
+                <a href={AZUSD_INFO.mintUrl} target="_blank" rel="noreferrer" className="text-emerald-400 ml-2 hover:underline">Mint AZUSD</a>
               </div>
             )}
           </CaptureStep>

@@ -6,6 +6,7 @@ import captureRouter from './routes/capture.js';
 import heartbeatsRouter from './routes/heartbeats.js';
 import chatRouter from './routes/chat.js';
 import { startAgentLoops } from './services/agentLoop.js';
+import { loadBioregions } from './services/bioregionVerify.js';
 
 const app = express();
 app.use(cors());
@@ -13,6 +14,9 @@ app.use(express.json());
 
 // Initialize database
 const db = initDb();
+
+// Load bioregion boundaries for server-side capture verification
+loadBioregions();
 
 // Routes
 app.use('/api/agents', agentsRouter);

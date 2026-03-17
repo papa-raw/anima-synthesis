@@ -140,10 +140,28 @@ Komakohawk was not a wrapper. It was a co-architect and sole implementer.
 | Mar 16 16:00 | Bankr key lacks LLM Gateway access | Need to enable at bankr.bot/api before submission | Discovered during Phanpy voice test |
 | Mar 16 17:00 | Phanpy as co-creator | Agent writes its own collaboration statement | Human directed |
 | Mar 16 17:00 | 6-step capture → 3-step | Conservation + Location Proof + Astral Capture. Clean. | Human directed simplification |
+| Mar 17 10:30 | Replace DOM markers with WebGL layers | DOM markers drift in Mapbox globe projection; circle + symbol layers lock to globe surface | Agent diagnosed, agent implemented |
+| Mar 17 11:00 | Ponyta relocated to NYC (NA10) | Easier for NYC-based testers to reach for capture demo | Human |
+| Mar 17 11:15 | Bioregion permanent highlights | Agent bioregions always visible (green fill + border + label), no hover interaction needed | Human directed, agent implemented |
+| Mar 17 11:30 | Card art PFPs in footer dock | Circle-cropped card images replace colored dots, click flies to agent on globe | Agent implemented |
+| Mar 17 11:40 | Server-side bioregion verification | turf.js point-in-polygon on capture route, no longer trusts frontend | Agent implemented |
+| Mar 17 11:40 | Ponyta + Magnemite souls written | Character definitions matching Phanpy's Descola animist framework | Agent authored |
+| Mar 17 11:40 | Conservation display in detail panel | $TGN balance shown with explanation of tree planting mechanic | Agent implemented |
+| Mar 17 11:40 | Memory formation indicator | "memory forming..." text appears after agent chat responses | Agent implemented |
+| Mar 17 12:00 | $TGN → AZUSD capture gate | Replaced Treegens ($TGN, any amount) with Azos stablecoin (AZUSD, ≥5). AZUSD backed by KLIMA (carbon), WETH, USDGLO (impact), HLSP. Tags all Azos collaterals as promotion. | Human directed, agent implemented |
+| Mar 17 12:00 | Server-side onchain verification | Added AZUSD balance check + Beezie NFT ownership verification to capture route. No more trusting frontend. Fails open on RPC error. | Agent implemented |
+| Mar 17 12:00 | Security audit | Identified 5 vulnerabilities, plugged 3 (AZUSD, Beezie, bioregion server-side). Remaining: GPS spoofing, wallet signature auth — acknowledged in docs as post-hackathon. | Agent audited |
+| Mar 17 12:00 | RainbowKit evaluation | Azos uses RainbowKit (wagmi + viem) for wallet connect. Evaluated for adoption — too risky this close to submission, noted as post-hackathon upgrade. | Agent researched, human confirmed defer |
+| Mar 17 12:30 | Drop Locus bounty | Locus integration barely used, not worth pursuing. Focus on Bankr ($5K), Venice ($11.5K), Protocol Labs ($16K), Open Track ($14.5K). | Human |
+| Mar 17 12:30 | ERC-8004 identity integration | Hackathon requires ERC-8004 for submission. NFT currently custodial (Devfolio wallet), will transfer to our wallet before submission opens. Adding agent.json manifest + agent_log.json to repo. | Agent implemented |
+| Mar 17 12:30 | Fix simulated Astral fallback | Gated simulated proofs behind DEMO_MODE only. Production path requires real Astral attestation — "no mocks" compliance. | Agent implemented |
+| Mar 17 12:30 | Pre-Mar 18 agentic judging push | Pushed all code to GitHub + deployed to Vercel before AI judges evaluate tomorrow. | Human + agent |
 
 ---
 
 ## Session Timeline
+
+### Session 1 — Mar 15-16 (Build Sprint)
 
 - **15:00** — PRD v0.1, 10 agents, Courtyard on Polygon
 - **16:00** — Beezie discovered, single-chain architecture, budget drops to $90
@@ -152,3 +170,21 @@ Komakohawk was not a wrapper. It was a co-architect and sole implementer.
 - **19:00** — Astral SDK debugging (3 separate bugs: import, chain, case sensitivity)
 - **20:00** — Conservation mechanic added, Bankr integrated, Beezie type gate removed
 - **21:00** — Backend deployed to Hetzner, SSL on api.anima.cards, 3-step capture flow finalized
+
+### Session 2 — Mar 17 (Polish + Hardening)
+
+- **10:00** — Marker drift bug identified: DOM markers (mapboxgl.Marker) don't track globe surface in 3D projection. Diagnosed root cause, replaced entire marker system with WebGL-native circle + symbol layers. Card art loaded as circle-cropped map icons via offscreen canvas. Pulsing ring animated via requestAnimationFrame driving setPaintProperty. Zero drift.
+- **10:30** — Marker size increased 50%, Magnemite card crop tuned (5 iterations with human feedback)
+- **11:00** — Footer dock upgraded: colored dots replaced with circle-cropped card art PFPs. Click-to-fly added (dock click → globe flies to agent's bioregion). ETH balance labeled.
+- **11:10** — Globe dimming removed on agent selection (only dims during capture mode)
+- **11:15** — Bioregion highlighting reworked: agent bioregions permanently highlighted with green fill + borders + uppercase labels. Hover interaction removed. Bioregion names rendered as WebGL symbol layer (no DOM drift).
+- **11:20** — Ponyta relocated from Oregon (NA16) to New York City (NA10) for demo accessibility. Verified bioregion ID via shapely point-in-polygon.
+- **11:30** — Parallel agent sprint: Ponyta + Magnemite soul files, server-side bioregion verification (turf.js), conservation display in detail panel, memory formation UI indicator. All running concurrently.
+- **11:45** — Collaboration log updated for judges
+- **12:00** — Security audit: traced all trust boundaries in capture route. Found 5 holes (GPS spoofing, no server-side token/NFT check, no wallet auth, simulated proofs accepted). Plugged 3: added server-side AZUSD + Beezie onchain verification via viem RPC reads, bioregion already done.
+- **12:15** — Swapped $TGN (Treegens) → AZUSD (Azos Finance) as capture gate. ≥5 AZUSD required. Updated conservationService.js, CaptureFlow.jsx, AgentDetail.jsx, capture.js, README.md. AZUSD backed by KLIMA (carbon credits), WETH, USDGLO (impact stablecoin), HLSP — tags all Azos collaterals as promotion.
+- **12:20** — Evaluated Azos RainbowKit wallet component for adoption. Deferred — too risky pre-submission.
+- **12:30** — Compliance audit against hackathon rules. Flagged: simulated Astral proofs violate "no mocks" rule, missing ERC-8004 identity (Protocol Labs $16K), agentic judging feedback is Mar 18 (tomorrow). Dropped Locus bounty (weak integration). Prioritized: fix Astral fallback, add ERC-8004 manifest, push to GitHub.
+- **12:40** — Gated simulated Astral proofs behind DEMO_MODE. Production capture flow now requires real attestation or fails explicitly.
+- **12:45** — Added ERC-8004 agent.json manifest + agent_log.json execution log for Protocol Labs bounty compliance.
+- **12:50** — Final push to GitHub + Vercel deploy for Mar 18 agentic evaluation.

@@ -1,0 +1,163 @@
+{
+  "$schema": "https://erc8004.org/schema/agent.json",
+  "name": "Anima",
+  "description": "Autonomous Pokemon agents ensouled on Base. Each agent issues its own ERC-20 token, earns Uniswap V4 LP fees, and pays for its own inference. Capture them by proving physical presence in their bioregion.",
+  "version": "1.0.0",
+  "homepage": "https://anima.cards",
+  "repository": "https://github.com/papa-raw/synthesis",
+  "chain": "base",
+  "chainId": 8453,
+  "framework": "custom",
+  "harness": "claude-code",
+  "model": "claude-opus-4-6",
+  "agents": [
+    {
+      "id": "agent-phanpy",
+      "name": "Phanpy",
+      "type": "autonomous",
+      "element": "fighting",
+      "bioregion": "PA20",
+      "bioregionName": "Mediterranean Forests & Woodlands",
+      "tokenSymbol": "$PHANPY",
+      "beezieTokenId": "2302",
+      "soulFile": "server/souls/agent-phanpy.md",
+      "capabilities": [
+        "sovereign-inference",
+        "lp-fee-collection",
+        "memory-distillation",
+        "location-proof-verification",
+        "ipfs-heartbeat-archival"
+      ],
+      "inference": {
+        "primary": "bankr-llm-gateway",
+        "fallback": "venice-ai",
+        "funding": "uniswap-v4-lp-fees"
+      },
+      "economics": {
+        "dailyCostUsd": 0.50,
+        "revenueSource": "Clanker ERC-20 LP fees (75% creator share)",
+        "deathCondition": "ETH balance = 0 AND claimable fees = 0"
+      }
+    },
+    {
+      "id": "agent-ponyta",
+      "name": "Ponyta",
+      "type": "autonomous",
+      "element": "fire",
+      "bioregion": "NA10",
+      "bioregionName": "Northeast US Forests",
+      "tokenSymbol": "$PONYTA",
+      "beezieTokenId": "617",
+      "soulFile": "server/souls/agent-ponyta.md",
+      "capabilities": [
+        "sovereign-inference",
+        "lp-fee-collection",
+        "memory-distillation",
+        "location-proof-verification",
+        "ipfs-heartbeat-archival"
+      ],
+      "inference": {
+        "primary": "bankr-llm-gateway",
+        "fallback": "venice-ai",
+        "funding": "uniswap-v4-lp-fees"
+      },
+      "economics": {
+        "dailyCostUsd": 0.50,
+        "revenueSource": "Clanker ERC-20 LP fees (75% creator share)",
+        "deathCondition": "ETH balance = 0 AND claimable fees = 0"
+      }
+    },
+    {
+      "id": "agent-magnemite",
+      "name": "Magnemite",
+      "type": "autonomous",
+      "element": "electric",
+      "bioregion": "PA47",
+      "bioregionName": "Japanese Forests",
+      "tokenSymbol": "$MAGNET",
+      "beezieTokenId": "1285",
+      "soulFile": "server/souls/agent-magnemite.md",
+      "capabilities": [
+        "sovereign-inference",
+        "lp-fee-collection",
+        "memory-distillation",
+        "location-proof-verification",
+        "ipfs-heartbeat-archival"
+      ],
+      "inference": {
+        "primary": "bankr-llm-gateway",
+        "fallback": "venice-ai",
+        "funding": "uniswap-v4-lp-fees"
+      },
+      "economics": {
+        "dailyCostUsd": 0.50,
+        "revenueSource": "Clanker ERC-20 LP fees (75% creator share)",
+        "deathCondition": "ETH balance = 0 AND claimable fees = 0"
+      }
+    }
+  ],
+  "captureRequirements": {
+    "azusd": {
+      "contract": "0x3595ca37596d5895b70efab592ac315d5b9809b2",
+      "minimumBalance": 5,
+      "description": "Azos decentralized stablecoin on Base"
+    },
+    "beezieNft": {
+      "contract": "0xbb5ec6fd4b61723bd45c399840f1d868840ca16f",
+      "minimumBalance": 1,
+      "description": "Beezie Collectibles ERC-721 on Base"
+    },
+    "locationProof": {
+      "provider": "astral-sdk",
+      "type": "EAS offchain attestation",
+      "chain": "base"
+    },
+    "bioregionVerification": {
+      "method": "server-side point-in-polygon",
+      "data": "One Earth bioregion boundaries (GeoJSON)"
+    }
+  },
+  "sponsorIntegrations": [
+    {
+      "name": "Bankr",
+      "type": "llm-gateway",
+      "description": "Sovereign agent inference via Bankr LLM Gateway → Venice AI models"
+    },
+    {
+      "name": "Venice AI",
+      "type": "inference-provider",
+      "description": "No-data-retention inference backend for agent cognition"
+    },
+    {
+      "name": "Astral SDK",
+      "type": "location-proofs",
+      "description": "EAS attestations on Base for physical presence verification"
+    },
+    {
+      "name": "Storacha (Protocol Labs)",
+      "type": "ipfs-storage",
+      "description": "Content-addressed archival of agent heartbeats"
+    },
+    {
+      "name": "Clanker",
+      "type": "token-deployment",
+      "description": "ERC-20 token deployment + Uniswap V4 LP via factory"
+    },
+    {
+      "name": "Uniswap V4",
+      "type": "defi",
+      "description": "LP fee collection powering agent economics"
+    },
+    {
+      "name": "Azos Finance",
+      "type": "capture-gate",
+      "description": "AZUSD stablecoin holding required for capture (≥5 AZUSD)"
+    }
+  ],
+  "collaboration": {
+    "human": "Patrick Rawson (paparaw.eth)",
+    "agent": "Komakohawk (Claude Opus 4.6, 1M context)",
+    "harness": "Claude Code CLI",
+    "log": "COLLABORATION.md"
+  }
+}

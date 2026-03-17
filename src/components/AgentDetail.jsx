@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import StatusPill from './StatusPill.jsx';
 import { ELEMENT_TYPES } from '../data/types.js';
 import { Wallet, Timer, Coin, Users, Lightning, TreePalm, MapPin, ChatCircleDots, X, Info, Cards } from '@phosphor-icons/react';
+import { checkAzusdBalance, AZUSD_INFO } from '../services/conservationService.js';
 
 function getRunwayDisplay(days, status, ethBalance) {
   // Unfunded agents aren't dead — they're waiting
@@ -41,6 +42,12 @@ function Requirement({ met, text }) {
 
 export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchingCard, walletAddress }) {
   const [tab, setTab] = useState('info'); // 'info' | 'soul'
+  const [tgnBalance, setTgnBalance] = useState(null);
+
+  useEffect(() => {
+    if (!walletAddress) { setTgnBalance(null); return; }
+    checkAzusdBalance(walletAddress).then(setTgnBalance);
+  }, [walletAddress]);
 
   if (!agent) return null;
 
@@ -136,7 +143,7 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
               {/* Requirements */}
               <div className="space-y-2 mb-4">
                 <div className="text-xs uppercase tracking-wider text-[#6b8f72]">Capture Requirements</div>
-                <Requirement met={false} text="Hold $TGN on Base (funds tree planting)" />
+                <Requirement met={!!(tgnBalance && tgnBalance.holds)} text={`Hold ≥${AZUSD_INFO.required} AZUSD on Base`} />
                 <Requirement met={false} text="Physical presence in bioregion (GPS + Astral proof)" />
               </div>
             </div>
@@ -174,10 +181,22 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
         {/* Bottom bar: capture + requirements */}
         <div className="border-t border-[#1a2f1e] p-3 space-y-2">
           <div className="flex items-center gap-2 text-xs text-[#6b8f72]">
-            <TreePalm size={12} /> <span>Hold $TGN</span>
+            <TreePalm size={12} />
+            {walletAddress && tgnBalance ? (
+              <span className={tgnBalance.holds ? 'text-emerald-400' : 'text-[#6b8f72]'}>
+                {tgnBalance.holds ? `${parseFloat(tgnBalance.balance).toFixed(2)} AZUSD` : '0 AZUSD'}
+              </span>
+            ) : (
+              <span>Hold AZUSD</span>
+            )}
             <span className="text-[#1a2f1e]">|</span>
             <MapPin size={12} /> <span>Be in bioregion</span>
           </div>
+          {walletAddress && tgnBalance && !tgnBalance.holds && (
+            <a href={AZUSD_INFO.mintUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-[0.7rem] text-[#6b8f72] hover:text-emerald-400 transition-colors">
+              <Coin size={10} /> Hold ≥{AZUSD_INFO.required} AZUSD to capture — mint at app.azos.finance
+            </a>
+          )}
           <button
             onClick={onCapture}
             disabled={agent.status !== 'wild'}
@@ -195,6 +214,7 @@ function SoulChat({ agent, walletAddress }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [memoryForming, setMemoryForming] = useState(false);
   const scrollRef = useRef(null);
   const elementType = ELEMENT_TYPES[agent.element] || ELEMENT_TYPES.normal;
 
@@ -226,6 +246,9 @@ function SoulChat({ agent, walletAddress }) {
       });
       const data = await res.json();
       setMessages(m => [...m, { role: 'agent', text: data.response || `*${agent.pokemon} stares at you silently*` }]);
+      // Show memory distillation indicator (server distills async after response)
+      setMemoryForming(true);
+      setTimeout(() => setMemoryForming(false), 2500);
     } catch (e) {
       setMessages(m => [...m, { role: 'agent', text: `*${agent.pokemon} stares at you silently*` }]);
     }
@@ -257,6 +280,11 @@ function SoulChat({ agent, walletAddress }) {
               <div className="px-3 py-1.5 rounded-lg text-sm text-[#6b8f72]" style={{ background: `${agent.color}10` }}>
                 <span className="animate-pulse">...</span>
               </div>
+            </div>
+          )}
+          {memoryForming && (
+            <div className="flex justify-start pl-2">
+              <span className="text-xs italic text-[#6b8f72] opacity-60">memory forming...</span>
             </div>
           )}
         </div>

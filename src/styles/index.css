@@ -27,56 +27,8 @@ body {
   font-family: 'Inter', system-ui, sans-serif;
 }
 
-/* Agent markers on globe */
-.agent-marker {
-  position: relative;
-  width: 56px;
-  height: 56px;
-  cursor: pointer;
-}
-.marker-ring {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  animation: marker-pulse 2s ease-in-out infinite;
-}
-.marker-core {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid rgba(255,255,255,0.4);
-  overflow: hidden;
-}
-
-@keyframes marker-pulse {
-  0%, 100% { box-shadow: 0 0 0 0px var(--el-color); background: var(--el-color); opacity: 0.3; }
-  50% { box-shadow: 0 0 0 20px var(--el-color); background: var(--el-color); opacity: 0; }
-}
-
-/* Dead agent marker */
-.agent-marker[data-status="dead"] .marker-ring {
-  animation: none;
-  opacity: 0.1;
-}
-.agent-marker[data-status="dead"] .marker-core {
-  filter: grayscale(1);
-  opacity: 0.5;
-}
-
-/* Selected agent marker */
-.agent-marker[data-selected="true"] .marker-ring {
-  animation-duration: 1s;
-}
-.agent-marker[data-selected="true"] .marker-core {
-  box-shadow: 0 0 24px var(--el-color);
-}
+/* Agent markers now rendered as WebGL layers (circle + symbol) in Globe.jsx.
+   No DOM marker CSS needed — fixes drift in globe projection mode. */
 
 /* Capture success particles */
 @keyframes capture-particle {

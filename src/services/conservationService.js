@@ -1,12 +1,16 @@
 /**
- * Conservation Service — verify $TGN (Treegens) holdings on Base
- * Every capture requires holding $TGN, which funds mangrove tree planting.
+ * Conservation Service — verify AZUSD (Azos Stablecoin) holdings on Base
+ * Every capture requires holding ≥5 AZUSD, a decentralized stablecoin backed
+ * by diversified collateral (cbBTC, cbETH, AERO, WELL, etc.) on Base.
+ * Holding AZUSD supports Base DeFi infrastructure and stable collateral health.
  */
 
-import { createPublicClient, http, formatUnits } from 'viem';
+import { createPublicClient, http, formatUnits, parseUnits } from 'viem';
 import { base } from 'viem/chains';
 
-const TGN_CONTRACT = '0xd75dfa972c6136f1c594fec1945302f885e1ab29';
+const AZUSD_CONTRACT = '0x3595ca37596d5895b70efab592ac315d5b9809b2';
+const AZUSD_DECIMALS = 18;
+const MIN_AZUSD_REQUIRED = 5; // Must hold ≥5 AZUSD to capture
 
 const publicClient = createPublicClient({
   chain: base,
@@ -31,42 +35,46 @@ const ERC20_ABI = [
 ];
 
 /**
- * Check if wallet holds any $TGN on Base
- * Returns { holds: boolean, balance: string, raw: bigint }
+ * Check if wallet holds ≥5 AZUSD on Base
+ * Returns { holds: boolean, balance: string, raw: bigint, required: number }
  */
-export async function checkTgnBalance(walletAddress) {
+export async function checkAzusdBalance(walletAddress) {
   try {
-    const [rawBalance, decimals] = await Promise.all([
-      publicClient.readContract({
-        address: TGN_CONTRACT,
-        abi: ERC20_ABI,
-        functionName: 'balanceOf',
-        args: [walletAddress]
-      }),
-      publicClient.readContract({
-        address: TGN_CONTRACT,
-        abi: ERC20_ABI,
-        functionName: 'decimals'
-      })
-    ]);
+    const rawBalance = await publicClient.readContract({
+      address: AZUSD_CONTRACT,
+      abi: ERC20_ABI,
+      functionName: 'balanceOf',
+      args: [walletAddress]
+    });
 
-    const balance = formatUnits(rawBalance, decimals);
+    const balance = formatUnits(rawBalance, AZUSD_DECIMALS);
+    const minRequired = parseUnits(String(MIN_AZUSD_REQUIRED), AZUSD_DECIMALS);
     return {
-      holds: rawBalance > 0n,
+      holds: rawBalance >= minRequired,
       balance,
-      raw: rawBalance.toString()
+      raw: rawBalance.toString(),
+      required: MIN_AZUSD_REQUIRED
     };
   } catch (e) {
-    console.error('TGN balance check failed:', e.message);
-    return { holds: false, balance: '0', raw: '0' };
+    console.error('AZUSD balance check failed:', e.message);
+    return { holds: false, balance: '0', raw: '0', required: MIN_AZUSD_REQUIRED };
   }
 }
 
-export const TGN_INFO = {
-  name: 'Treegens',
-  symbol: '$TGN',
-  contract: TGN_CONTRACT,
+// Keep old export name for backward compatibility during migration
+export const checkTgnBalance = checkAzusdBalance;
+
+export const AZUSD_INFO = {
+  name: 'Azos Stablecoin',
+  symbol: 'AZUSD',
+  contract: AZUSD_CONTRACT,
   chain: 'base',
-  buyUrl: 'https://app.uniswap.org/swap?outputCurrency=0xd75dfa972c6136f1c594fec1945302f885e1ab29&chain=base',
-  impact: '50% of purchase funds mangrove tree planters onchain'
+  decimals: AZUSD_DECIMALS,
+  required: MIN_AZUSD_REQUIRED,
+  mintUrl: 'https://app.azos.finance/',
+  docsUrl: 'https://docs.azos.finance/docs/intro/',
+  impact: 'Decentralized stablecoin backed by diversified Base collateral (cbBTC, cbETH, AERO, WELL)'
 };
+
+// Backward compat
+export const TGN_INFO = AZUSD_INFO;

@@ -85,9 +85,11 @@ export async function initBrowserAstral() {
 }
 
 /**
- * Create a location proof (real Astral or simulated fallback)
+ * Create a location proof via Astral SDK.
+ * Simulated fallback ONLY available in DEMO_MODE — production requires real attestation.
  */
 export async function createLocationProof(location, agent) {
+  const demoMode = import.meta.env.VITE_DEMO_MODE === 'true';
   const timestamp = Math.floor(Date.now() / 1000);
 
   // Try real Astral attestation
@@ -119,12 +121,18 @@ export async function createLocationProof(location, agent) {
         simulated: false
       };
     } catch (e) {
-      console.error('Real Astral proof failed, falling back to simulated:', e.message);
+      console.error('Real Astral proof failed:', e.message);
+      if (!demoMode) {
+        throw new Error(`Astral location proof failed: ${e.message}. Connect wallet and ensure Base chain is selected.`);
+      }
+      console.warn('DEMO_MODE: falling back to simulated proof');
     }
+  } else if (!demoMode) {
+    throw new Error('Astral SDK not initialized. Connect wallet first.');
   }
 
-  // Simulated fallback (for demo/testing)
-  const proofId = `proof_${timestamp}_${Math.random().toString(36).substring(2, 8)}`;
+  // Simulated fallback — DEMO_MODE only (for hackathon judging without real wallet)
+  const proofId = `demo_proof_${timestamp}_${Math.random().toString(36).substring(2, 8)}`;
   return {
     uid: proofId,
     schema: 'LocationProof',

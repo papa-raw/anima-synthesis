@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { getDb } from '../db/init.js';
 import { transferNftToCatcher } from '../services/nftTransfer.js';
+import { verifyBioregion } from '../services/bioregionVerify.js';
+import { verifyAzusdHolding, verifyBeezieHolding } from '../services/onchainVerify.js';
 
 const router = Router();
 
@@ -23,11 +25,32 @@ router.post('/', async (req, res) => {
   if (!agent) return res.status(404).json({ error: 'Agent not found' });
   if (agent.status !== 'wild') return res.status(400).json({ error: `Agent is ${agent.status}, not capturable` });
 
-  // 2-3. Card verification (onchain verify would go here — for now trust the frontend)
-  // TODO: Add server-side beezieVerify.js call for production
+  // 2. Server-side AZUSD verification (≥5 AZUSD required)
+  const azusdCheck = await verifyAzusdHolding(catcherWallet);
+  if (!azusdCheck.valid) {
+    return res.status(403).json({
+      error: 'Insufficient AZUSD',
+      detail: `Wallet holds ${azusdCheck.balance} AZUSD, need ≥${azusdCheck.required}. Mint at app.azos.finance`
+    });
+  }
 
-  // 4. Bioregion verification (point-in-polygon would go here)
-  // For hackathon: trust the frontend + demo mode
+  // 3. Server-side Beezie NFT verification (≥1 Beezie NFT required)
+  const beezieCheck = await verifyBeezieHolding(catcherWallet);
+  if (!beezieCheck.valid) {
+    return res.status(403).json({
+      error: 'No Beezie NFT',
+      detail: 'Wallet must hold at least one Beezie collectible NFT on Base'
+    });
+  }
+
+  // 4. Bioregion verification — server-side point-in-polygon
+  const bioCheck = verifyBioregion(latitude, longitude, agent.bioregion_id);
+  if (!bioCheck.valid) {
+    const msg = bioCheck.actual
+      ? `Location is in bioregion ${bioCheck.actual}, not ${agent.bioregion_id}`
+      : `Location (${latitude}, ${longitude}) is not within bioregion ${agent.bioregion_id}`;
+    return res.status(403).json({ error: 'Bioregion mismatch', detail: msg });
+  }
 
   // 5. Record proof
   db.prepare(`INSERT INTO capture_proofs (agent_id, catcher_wallet, matching_card_token_id, latitude, longitude, accuracy, bioregion_verified, astral_proof_hash, status)

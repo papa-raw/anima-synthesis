@@ -140,7 +140,7 @@ export default function App() {
         agents={agents}
         selectedAgent={selectedAgent}
         onAgentSelect={handleAgentSelect}
-        dimmed={!!selectedAgent || captureMode}
+        dimmed={captureMode}
       />
 
       <AgentDock

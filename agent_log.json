@@ -1,0 +1,55 @@
+{
+  "$schema": "https://erc8004.org/schema/agent_log.json",
+  "agentName": "Anima",
+  "sessions": [
+    {
+      "id": "session-001",
+      "start": "2026-03-15T15:00:00Z",
+      "end": "2026-03-16T21:00:00Z",
+      "human": "paparaw.eth",
+      "agent": "Komakohawk (Claude Opus 4.6)",
+      "summary": "Build sprint: pivot from Vigil to Anima, full stack implementation",
+      "actions": [
+        { "time": "2026-03-15T15:00:00Z", "type": "design", "description": "PRD v0.1 — 10 agents, Courtyard on Polygon" },
+        { "time": "2026-03-15T16:00:00Z", "type": "research", "description": "Discovered Beezie as Courtyard alternative on Base — collapsed to single-chain architecture" },
+        { "time": "2026-03-15T17:00:00Z", "type": "design", "description": "Dropped Clawnch ($151 burn), switched to direct clanker-sdk. Reduced to 3 agents." },
+        { "time": "2026-03-15T18:00:00Z", "type": "build", "description": "Frontend built: React + Vite + Tailwind + Mapbox GL globe with bioregion boundaries" },
+        { "time": "2026-03-15T19:00:00Z", "type": "debug", "description": "Fixed 3 Astral SDK bugs: import casing, chain ID, geoJson vs geojson" },
+        { "time": "2026-03-15T20:00:00Z", "type": "build", "description": "Conservation mechanic ($TGN gate), Bankr LLM gateway integration, Beezie type gate removed" },
+        { "time": "2026-03-15T21:00:00Z", "type": "deploy", "description": "Backend deployed to Hetzner (api.anima.cards), SSL configured, 3-step capture flow finalized" },
+        { "time": "2026-03-16T17:00:00Z", "type": "creative", "description": "Phanpy speaks: agent writes its own collaboration statement via Venice AI inference" }
+      ],
+      "artifacts": [
+        { "type": "code", "description": "~3,000 LOC across 40+ files", "location": "src/, server/, scripts/" },
+        { "type": "deployment", "description": "Frontend on Vercel, backend on Hetzner", "urls": ["https://anima.cards", "https://api.anima.cards"] },
+        { "type": "onchain", "description": "Phanpy token deployed via Clanker SDK on Base" },
+        { "type": "soul", "description": "Phanpy character definition (Descola animist metaphysics)", "location": "server/souls/agent-phanpy.md" }
+      ]
+    },
+    {
+      "id": "session-002",
+      "start": "2026-03-17T10:00:00Z",
+      "end": "2026-03-17T13:00:00Z",
+      "human": "paparaw.eth",
+      "agent": "Komakohawk (Claude Opus 4.6)",
+      "summary": "Polish, security hardening, AZUSD integration, ERC-8004 compliance",
+      "actions": [
+        { "time": "2026-03-17T10:00:00Z", "type": "debug", "description": "Fixed marker drift: replaced DOM markers with WebGL circle + symbol layers. Card art loaded via offscreen canvas." },
+        { "time": "2026-03-17T10:30:00Z", "type": "build", "description": "Marker size +50%, Magnemite crop tuned (5 iterations), footer dock PFPs with click-to-fly" },
+        { "time": "2026-03-17T11:00:00Z", "type": "build", "description": "Bioregion permanent highlights + labels. Globe dimming removed on agent selection." },
+        { "time": "2026-03-17T11:20:00Z", "type": "design", "description": "Ponyta relocated to NYC (NA10) for demo accessibility. Verified via shapely point-in-polygon." },
+        { "time": "2026-03-17T11:30:00Z", "type": "build", "description": "Parallel agent sprint: Ponyta + Magnemite souls, server-side bioregion verification, conservation display, memory UI indicator" },
+        { "time": "2026-03-17T12:00:00Z", "type": "audit", "description": "Security audit: identified 5 vulnerabilities. Plugged 3: server-side AZUSD + Beezie onchain verification, bioregion point-in-polygon." },
+        { "time": "2026-03-17T12:15:00Z", "type": "build", "description": "Swapped $TGN → AZUSD (Azos Finance) as capture gate. ≥5 AZUSD required. Full frontend + backend migration." },
+        { "time": "2026-03-17T12:30:00Z", "type": "compliance", "description": "Hackathon rules audit. Gated simulated Astral proofs behind DEMO_MODE only. Added ERC-8004 agent.json manifest." },
+        { "time": "2026-03-17T12:45:00Z", "type": "build", "description": "Created agent.json (ERC-8004) and agent_log.json execution log for Protocol Labs bounty compliance" }
+      ],
+      "artifacts": [
+        { "type": "soul", "description": "Ponyta + Magnemite character definitions", "location": "server/souls/" },
+        { "type": "security", "description": "Server-side onchain verification (AZUSD + Beezie + bioregion)", "location": "server/services/onchainVerify.js" },
+        { "type": "compliance", "description": "ERC-8004 agent manifest", "location": "agent.json" },
+        { "type": "compliance", "description": "ERC-8004 execution log", "location": "agent_log.json" }
+      ]
+    }
+  ]
+}
