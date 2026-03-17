@@ -30,8 +30,8 @@ body {
 /* Agent markers on globe */
 .agent-marker {
   position: relative;
-  width: 100px;
-  height: 100px;
+  width: 56px;
+  height: 56px;
   cursor: pointer;
 }
 .marker-ring {
@@ -45,19 +45,19 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 80px;
-  height: 80px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 3px solid rgba(255,255,255,0.4);
+  border: 2px solid rgba(255,255,255,0.4);
   overflow: hidden;
 }
 
 @keyframes marker-pulse {
   0%, 100% { box-shadow: 0 0 0 0px var(--el-color); background: var(--el-color); opacity: 0.3; }
-  50% { box-shadow: 0 0 0 30px var(--el-color); background: var(--el-color); opacity: 0; }
+  50% { box-shadow: 0 0 0 20px var(--el-color); background: var(--el-color); opacity: 0; }
 }
 
 /* Dead agent marker */
