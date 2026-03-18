@@ -69,6 +69,7 @@ export const AZUSD_INFO = {
   decimals: AZUSD_DECIMALS,
   required: MIN_AZUSD_REQUIRED,
   mintUrl: 'https://app.azos.finance/',
+  buyUrl: 'https://www.hydrex.fi/swap?tokenIn=ETH&tokenOut=0x3595ca37596d5895b70efab592ac315d5b9809b2',
   docsUrl: 'https://docs.azos.finance/docs/intro/',
   impact: 'Decentralized overcollateralized stablecoin on Base'
 };

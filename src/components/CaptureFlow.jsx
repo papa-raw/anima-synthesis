@@ -185,7 +185,7 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
             {states.conservation === 'failed' && (
               <div className="text-sm">
                 <span className="text-red-400">{error}</span>
-                <a href={AZUSD_INFO.mintUrl} target="_blank" rel="noreferrer" className="text-emerald-400 ml-2 hover:underline">Mint AZUSD</a>
+                <a href={AZUSD_INFO.buyUrl} target="_blank" rel="noreferrer" className="text-emerald-400 ml-2 hover:underline">Swap ETH → AZUSD on Hydrex</a>
               </div>
             )}
           </CaptureStep>

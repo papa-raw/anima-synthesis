@@ -193,8 +193,8 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
             <MapPin size={12} /> <span>Be in bioregion</span>
           </div>
           {walletAddress && azusdBalance && !azusdBalance.holds && (
-            <a href={AZUSD_INFO.mintUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-[0.7rem] text-[#6b8f72] hover:text-emerald-400 transition-colors">
-              <Coin size={10} /> Hold ≥{AZUSD_INFO.required} AZUSD to capture — mint at app.azos.finance
+            <a href={AZUSD_INFO.buyUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-[0.7rem] text-[#6b8f72] hover:text-emerald-400 transition-colors">
+              <Coin size={10} /> Need ≥{AZUSD_INFO.required} AZUSD — swap ETH → AZUSD on Hydrex
             </a>
           )}
           <button

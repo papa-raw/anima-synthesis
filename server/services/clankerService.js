@@ -24,13 +24,13 @@ function getClankerForAgent(agentId) {
 export async function deployToken(agentId, name, symbol, image = '') {
   const { clanker, account } = getClankerForAgent(agentId);
   try {
-    const tokenAddress = await clanker.deployToken({
+    const result = await clanker.deploy({
       name,
       symbol,
       image,
       pool: {
         quoteToken: '0x4200000000000000000000000000000000000006', // WETH on Base
-        initialMarketCap: '0.1',
+        startingMarketCap: 0.1,
       },
       rewardsConfig: {
         creatorReward: 75,
@@ -41,8 +41,12 @@ export async function deployToken(agentId, name, symbol, image = '') {
       },
       context: { interface: 'Anima', platform: 'Synthesis Hackathon' },
     });
-    console.log(`Deployed ${symbol} at ${tokenAddress}`);
-    return tokenAddress;
+    if (result.error) throw new Error(JSON.stringify(result.error));
+    const { txHash, waitForTransaction } = result;
+    console.log(`Deploy tx sent: ${txHash}`);
+    const { address } = await waitForTransaction();
+    console.log(`Deployed ${symbol} at ${address}`);
+    return address;
   } catch (e) {
     console.error(`Token deploy failed for ${agentId}:`, e.message);
     throw e;
