@@ -593,14 +593,35 @@ function MemoryGallery({ agentId, agentColor, artGenerating }) {
               </div>
             </div>
             {m.nft_token_id && (
-              <a
-                href={`https://basescan.org/nft/0x59FbA43625eF81460930a8770Ee9c69042311c1a/${m.nft_token_id}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="absolute top-1 right-1 bg-orange-500/20 text-orange-400 text-[0.55rem] px-1.5 py-0.5 rounded border border-orange-500/30 hover:bg-orange-500/30 transition-colors"
+              <button
+                onClick={async () => {
+                  if (!window.ethereum) { alert('Connect wallet to bid'); return; }
+                  const amount = prompt(`Bid on Memory #${m.nft_token_id}\n\n"${m.content}"\n\nMinimum: 0.0001 ETH\nEnter bid in ETH:`);
+                  if (!amount || isNaN(parseFloat(amount))) return;
+                  try {
+                    const { ethers } = await import('ethers');
+                    const provider = new ethers.BrowserProvider(window.ethereum);
+                    const signer = await provider.getSigner();
+                    const bazaar = new ethers.Contract(
+                      '0x51c36ffb05e17ed80ee5c02fa83d7677c5613de2',
+                      ['function bid(address _originContract, uint256 _tokenId) payable'],
+                      signer
+                    );
+                    const tx = await bazaar.bid(
+                      '0x59FbA43625eF81460930a8770Ee9c69042311c1a',
+                      m.nft_token_id,
+                      { value: ethers.parseEther(amount) }
+                    );
+                    await tx.wait();
+                    alert(`Bid placed! tx: ${tx.hash}`);
+                  } catch (e) {
+                    alert('Bid failed: ' + (e.reason || e.message));
+                  }
+                }}
+                className="absolute top-1 right-1 bg-orange-500/20 text-orange-400 text-[0.55rem] px-1.5 py-0.5 rounded border border-orange-500/30 hover:bg-orange-500/30 transition-colors cursor-pointer"
               >
-                Auction ↗
-              </a>
+                0.0001 ETH · Bid
+              </button>
             )}
           </div>
         ))}
