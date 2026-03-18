@@ -62,10 +62,21 @@ router.post('/', async (req, res) => {
   try {
     let response;
     const bankrKey = process.env.BANKR_API_KEY;
-    if (bankrKey) {
-      response = await agentInference(bankrKey, systemPrompt, userPrompt);
-    } else {
+    // Try Bankr first (sovereign inference), fall back to Venice direct if truncated/failed
+    try {
+      if (bankrKey) {
+        response = await agentInference(bankrKey, systemPrompt, userPrompt);
+      } else {
+        response = await devInference(systemPrompt, userPrompt);
+      }
+    } catch {
       response = await devInference(systemPrompt, userPrompt);
+    }
+    // If response looks truncated (ends mid-word), retry with Venice direct
+    if (response && response.length > 10 && !response.match(/[.!?*)\]"']$/)) {
+      try {
+        response = await devInference(systemPrompt, userPrompt);
+      } catch { /* keep truncated response */ }
     }
 
     const trimmed = response.trim();

@@ -99,7 +99,7 @@ export async function generateMemoryArt(agent, memory) {
       imageUrl,
       ipfsCid,
       prompt: artPrompt,
-      model: 'fluently-xl'
+      model: 'flux-2-max'
     };
   } catch (e) {
     console.error('Memory art generation failed:', e.message);
