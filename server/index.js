@@ -1,6 +1,10 @@
 import express from 'express';
 import cors from 'cors';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 import { initDb } from './db/init.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 import agentsRouter from './routes/agents.js';
 import captureRouter from './routes/capture.js';
 import heartbeatsRouter from './routes/heartbeats.js';
@@ -23,6 +27,9 @@ app.use('/api/agents', agentsRouter);
 app.use('/api/capture', captureRouter);
 app.use('/api/heartbeats', heartbeatsRouter);
 app.use('/api/chat', chatRouter);
+
+// Serve generated art
+app.use('/art', express.static(join(__dirname, '../public/art')));
 
 // Health check
 app.get('/api/health', (req, res) => {

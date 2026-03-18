@@ -89,9 +89,23 @@ export async function generateMemoryArt(agent, memory) {
       console.warn('IPFS upload for memory art failed:', e.message);
     }
 
+    // Save to disk as fallback when IPFS unavailable
+    let localPath = null;
+    if (!ipfsCid) {
+      const { mkdirSync, writeFileSync } = await import('fs');
+      const { join, dirname } = await import('path');
+      const { fileURLToPath } = await import('url');
+      const __dirname = dirname(fileURLToPath(import.meta.url));
+      const artDir = join(__dirname, '../../public/art');
+      mkdirSync(artDir, { recursive: true });
+      const filename = `${agent.id}-${Date.now()}.jpg`;
+      writeFileSync(join(artDir, filename), imageBuffer);
+      localPath = `/art/${filename}`;
+    }
+
     const imageUrl = ipfsCid
       ? `https://w3s.link/ipfs/${ipfsCid}`
-      : null;
+      : localPath;
 
     console.log(`[${agent.id}] Memory art generated: ${artPrompt.slice(0, 60)}... → ${ipfsCid || 'no IPFS'}`);
 
