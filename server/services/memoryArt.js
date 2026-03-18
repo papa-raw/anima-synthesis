@@ -101,7 +101,11 @@ export async function generateMemoryArt(agent, memory) {
       const __dirname = dirname(fileURLToPath(import.meta.url));
       const artDir = join(__dirname, '../../public/art');
       mkdirSync(artDir, { recursive: true });
-      const filename = `${agent.id}-${Date.now()}.jpg`;
+      // Detect format from buffer header
+      const isWebP = imageBuffer[0] === 0x52 && imageBuffer[1] === 0x49; // RIFF
+      const isPNG = imageBuffer[0] === 0x89 && imageBuffer[1] === 0x50; // PNG
+      const ext = isWebP ? 'webp' : isPNG ? 'png' : 'jpg';
+      const filename = `${agent.id}-${Date.now()}.${ext}`;
       writeFileSync(join(artDir, filename), imageBuffer);
       localPath = `${process.env.API_URL || 'https://api.anima.cards'}/art/${filename}`;
     }
