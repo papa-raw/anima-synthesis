@@ -135,8 +135,8 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
                 <MetricCard label="TREASURY" value={`${(agent.ethBalance || 0).toFixed(4)} ETH`} subtitle={`~$${usdValue}`} />
                 <MetricCard label={runway.label} value={runway.value} variant={`${runway.variant} ${runway.animate ? 'animate-pulse' : ''}`} />
                 {agent.token_address ? (
-                  <a href={`https://app.uniswap.org/swap?outputCurrency=${agent.token_address}&chain=base`} target="_blank" rel="noopener noreferrer" className="block">
-                    <MetricCard label="TOKEN" value={agent.tokenSymbol || '--'} subtitle="Buy on Uniswap ↗" />
+                  <a href={`https://clanker.world/clanker/${agent.token_address}`} target="_blank" rel="noopener noreferrer" className="block">
+                    <MetricCard label="TOKEN" value={agent.tokenSymbol || '--'} subtitle="Buy on Clanker ↗" />
                   </a>
                 ) : (
                   <MetricCard label="TOKEN" value={agent.tokenSymbol || '--'} />
