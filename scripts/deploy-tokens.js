@@ -19,10 +19,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Agent token configs
 const TOKEN_CONFIGS = [
-  { agentId: 'agent-phanpy', name: 'Anima Phanpy', symbol: 'PHANPY' },
-  // Add more as cards are purchased:
-  // { agentId: 'agent-2', name: 'Anima Agent2', symbol: 'AGT2' },
-  // { agentId: 'agent-3', name: 'Anima Agent3', symbol: 'AGT3' },
+  { agentId: 'agent-phanpy', name: 'Anima Phanpy', symbol: 'PHANPY', image: 'https://anima.cards/tokens/agent-phanpy.png' },
+  { agentId: 'agent-2', name: 'Anima Ponyta', symbol: 'PONYTA', image: 'https://anima.cards/tokens/agent-ponyta.png' },
+  { agentId: 'agent-3', name: 'Anima Magnemite', symbol: 'MAGNET', image: 'https://anima.cards/tokens/agent-magnemite.png' },
 ];
 
 async function main() {
@@ -41,7 +40,7 @@ async function main() {
 
     console.log(`\nDeploying ${config.symbol} for ${config.agentId}...`);
     try {
-      const tokenAddress = await deployToken(config.agentId, config.name, config.symbol);
+      const tokenAddress = await deployToken(config.agentId, config.name, config.symbol, config.image);
       db.prepare('UPDATE agents SET token_address = ?, token_symbol = ? WHERE id = ?')
         .run(tokenAddress, `$${config.symbol}`, config.agentId);
       console.log(`Success: ${config.symbol} deployed at ${tokenAddress}`);

@@ -21,13 +21,13 @@ function getClankerForAgent(agentId) {
   return { clanker: new Clanker({ wallet, publicClient }), account };
 }
 
-export async function deployToken(agentId, name, symbol) {
+export async function deployToken(agentId, name, symbol, image = '') {
   const { clanker, account } = getClankerForAgent(agentId);
   try {
     const tokenAddress = await clanker.deployToken({
       name,
       symbol,
-      image: '',
+      image,
       pool: {
         quoteToken: '0x4200000000000000000000000000000000000006', // WETH on Base
         initialMarketCap: '0.1',
