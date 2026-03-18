@@ -6,6 +6,7 @@
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { ONE_EARTH_BIOREGION_NAMES } from '../data/bioregionNames.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -41,7 +42,8 @@ export function verifyBioregion(lat, lng, bioregionId) {
   if (!bioregionId) {
     for (const feature of bioregionData.features) {
       if (pointInGeometry(point, feature.geometry)) {
-        return { valid: true, actual: feature.properties.Bioregions, actualName: feature.properties.Bioregions };
+        const code = feature.properties.Bioregions;
+        return { valid: true, actual: code, actualName: ONE_EARTH_BIOREGION_NAMES[code] || code };
       }
     }
     return { valid: false, actual: null };
