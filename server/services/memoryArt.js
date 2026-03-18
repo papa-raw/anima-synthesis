@@ -36,7 +36,7 @@ export async function generateMemoryArt(agent, memory) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'fluently-xl',
+        model: 'flux-2-max',
         prompt: artPrompt,
         width: 1024,
         height: 1024,

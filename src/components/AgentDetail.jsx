@@ -41,8 +41,9 @@ function Requirement({ met, text }) {
 }
 
 export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchingCard, walletAddress }) {
-  const [tab, setTab] = useState('info'); // 'info' | 'soul'
+  const [tab, setTab] = useState('info');
   const [azusdBalance, setTgnBalance] = useState(null);
+  const [chatMessages, setChatMessages] = useState(null); // persists across tab switches
 
   useEffect(() => {
     if (!walletAddress) { setTgnBalance(null); return; }
@@ -241,7 +242,7 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
           )}
 
           {tab === 'soul' && (
-            <SoulChat agent={agent} walletAddress={walletAddress} />
+            <SoulChat agent={agent} walletAddress={walletAddress} messages={chatMessages} onMessagesChange={setChatMessages} />
           )}
         </div>
 
@@ -296,21 +297,27 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
   );
 }
 
-function SoulChat({ agent, walletAddress }) {
-  const [messages, setMessages] = useState([]);
+function SoulChat({ agent, walletAddress, messages: savedMessages, onMessagesChange }) {
+  const [messages, setMessages] = useState(savedMessages || []);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [memoryForming, setMemoryForming] = useState(false);
   const scrollRef = useRef(null);
   const elementType = ELEMENT_TYPES[agent.element] || ELEMENT_TYPES.normal;
 
-  // Auto-greeting on mount
+  // Auto-greeting on first open (no saved messages)
   useEffect(() => {
-    setMessages([{
-      role: 'agent',
-      text: getGreeting(agent)
-    }]);
+    if (!savedMessages) {
+      const initial = [{ role: 'agent', text: getGreeting(agent) }];
+      setMessages(initial);
+      onMessagesChange?.(initial);
+    }
   }, [agent.id]);
+
+  // Sync messages up to parent for persistence
+  useEffect(() => {
+    if (messages.length > 0) onMessagesChange?.(messages);
+  }, [messages]);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;

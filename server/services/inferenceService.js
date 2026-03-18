@@ -29,7 +29,7 @@ export async function agentInference(bankrApiKey, systemPrompt, userPrompt, opti
     },
     body: JSON.stringify({
       model: options.model || 'gemini-2.5-flash',  // Cheapest Bankr model; venice-uncensored not available on Bankr
-      max_tokens: options.maxTokens || 200,
+      max_tokens: options.maxTokens || 300,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }
@@ -62,7 +62,7 @@ export async function devInference(systemPrompt, userPrompt, options = {}) {
       },
       body: JSON.stringify({
         model: 'venice-uncensored',
-        max_tokens: options.maxTokens || 200,
+        max_tokens: options.maxTokens || 300,
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
