@@ -3,6 +3,7 @@ import { getDb } from '../db/init.js';
 import { transferNftToCatcher } from '../services/nftTransfer.js';
 import { verifyBioregion } from '../services/bioregionVerify.js';
 import { verifyAzusdHolding, verifyBeezieHolding } from '../services/onchainVerify.js';
+import { generateMemoryArt } from '../services/memoryArt.js';
 
 const router = Router();
 
@@ -75,6 +76,58 @@ router.post('/', async (req, res) => {
 
   const updated = db.prepare('SELECT * FROM agents WHERE id = ?').get(agentId);
   res.json({ captured: true, agent: updated, nftTxHash });
+});
+
+// POST /api/release — release a captured agent into the releaser's bioregion
+// NFT transfer happens on frontend (user signs tx), server records the release
+router.post('/release', async (req, res) => {
+  const { agentId, releaserWallet, latitude, longitude, nftTxHash } = req.body;
+
+  if (!agentId || !releaserWallet) {
+    return res.status(400).json({ error: 'Missing agentId or releaserWallet' });
+  }
+
+  const db = getDb();
+  const agent = db.prepare('SELECT * FROM agents WHERE id = ?').get(agentId);
+  if (!agent) return res.status(404).json({ error: 'Agent not found' });
+  if (agent.status !== 'captured') return res.status(400).json({ error: `Agent is ${agent.status}, not releasable` });
+
+  // Only the catcher can release
+  if (agent.captured_by?.toLowerCase() !== releaserWallet.toLowerCase()) {
+    return res.status(403).json({ error: 'Only the catcher can release this agent' });
+  }
+
+  // Determine release bioregion from user's GPS
+  let releaseBioregion = agent.bioregion_id;
+  let releaseBioregionName = agent.bioregion_name;
+  if (typeof latitude === 'number' && typeof longitude === 'number') {
+    const bioCheck = verifyBioregion(latitude, longitude, null);
+    if (bioCheck.actual) {
+      releaseBioregion = bioCheck.actual;
+      releaseBioregionName = bioCheck.actualName || releaseBioregion;
+    }
+  }
+
+  // Update agent to wild in the new bioregion
+  db.prepare(`UPDATE agents SET status = 'wild', captured_by = NULL, captured_at = NULL, nft_tx_hash = NULL, bioregion_id = ?, bioregion_name = ? WHERE id = ?`)
+    .run(releaseBioregion, releaseBioregionName, agentId);
+
+  // Create a special release memory
+  const releaseMemory = `I was released into ${releaseBioregionName} by ${releaserWallet.slice(0, 8)}... They held me, then set me free in a new territory. I am wild again.`;
+  const memResult = db.prepare(
+    'INSERT INTO agent_memories (agent_id, memory_type, content, emotional_valence, importance, trainer_wallet, source) VALUES (?, ?, ?, ?, ?, ?, ?)'
+  ).run(agentId, 'release', releaseMemory, 0.9, 1.0, releaserWallet, 'release');
+
+  // Generate special release art (async)
+  generateMemoryArt(agent, releaseMemory).then(art => {
+    if (art) {
+      db.prepare('UPDATE agent_memories SET art_url = ?, art_ipfs_cid = ?, art_prompt = ? WHERE id = ?')
+        .run(art.imageUrl, art.ipfsCid, art.prompt, memResult.lastInsertRowid);
+    }
+  }).catch(() => {});
+
+  const updated = db.prepare('SELECT * FROM agents WHERE id = ?').get(agentId);
+  res.json({ released: true, agent: updated, nftTxHash, memory: releaseMemory });
 });
 
 export default router;

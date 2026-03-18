@@ -282,6 +282,60 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
             >
               Connect Wallet to Capture
             </button>
+          ) : agent.status === 'captured' && walletAddress && agent.captured_by?.toLowerCase() === walletAddress.toLowerCase() ? (
+            <button
+              onClick={async () => {
+                if (!confirm('Release this agent back into the wild? The Beezie NFT will transfer back to the agent.')) return;
+                try {
+                  // Get user's GPS for release bioregion
+                  let lat = null, lng = null;
+                  try {
+                    const pos = await new Promise((resolve, reject) =>
+                      navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 })
+                    );
+                    lat = pos.coords.latitude;
+                    lng = pos.coords.longitude;
+                  } catch { /* GPS optional for release */ }
+
+                  // Transfer NFT back to agent via user's wallet
+                  let nftTxHash = null;
+                  if (window.ethereum && agent.beezieTokenId && agent.wallet_address) {
+                    const { ethers } = await import('ethers');
+                    const provider = new ethers.BrowserProvider(window.ethereum);
+                    const signer = await provider.getSigner();
+                    const nft = new ethers.Contract(
+                      '0xbb5ec6fd4b61723bd45c399840f1d868840ca16f',
+                      ['function transferFrom(address from, address to, uint256 tokenId)'],
+                      signer
+                    );
+                    const tx = await nft.transferFrom(walletAddress, agent.wallet_address, agent.beezieTokenId);
+                    await tx.wait();
+                    nftTxHash = tx.hash;
+                  }
+
+                  // Notify server
+                  const res = await fetch('/api/capture/release', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      agentId: agent.id,
+                      releaserWallet: walletAddress,
+                      latitude: lat,
+                      longitude: lng,
+                      nftTxHash
+                    })
+                  });
+                  if (!res.ok) throw new Error((await res.json()).error);
+                  alert('Released! The agent is wild again.');
+                  window.location.reload();
+                } catch (e) {
+                  alert('Release failed: ' + e.message);
+                }
+              }}
+              className="w-full py-2.5 rounded-lg font-bold text-sm text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 transition-all"
+            >
+              RELEASE INTO THE WILD
+            </button>
           ) : (
             <button
               onClick={onCapture}

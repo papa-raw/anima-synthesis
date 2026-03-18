@@ -37,7 +37,17 @@ export function verifyBioregion(lat, lng, bioregionId) {
 
   const point = [lng, lat]; // GeoJSON is [lon, lat]
 
-  // Find the claimed bioregion and check containment
+  // Identification mode (bioregionId = null): just find which bioregion the point is in
+  if (!bioregionId) {
+    for (const feature of bioregionData.features) {
+      if (pointInGeometry(point, feature.geometry)) {
+        return { valid: true, actual: feature.properties.Bioregions, actualName: feature.properties.Bioregions };
+      }
+    }
+    return { valid: false, actual: null };
+  }
+
+  // Verification mode: check containment in claimed bioregion
   const claimed = bioregionData.features.find(f => f.properties.Bioregions === bioregionId);
   if (claimed && pointInGeometry(point, claimed.geometry)) {
     return { valid: true, actual: bioregionId };
