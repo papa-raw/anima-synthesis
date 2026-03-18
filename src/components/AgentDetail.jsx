@@ -616,9 +616,14 @@ function MemoryGallery({ agentId, agentColor, artGenerating }) {
               </div>
             </div>
             {m.nft_token_id && (
-              <div className="absolute top-1 right-1 bg-emerald-500/20 text-emerald-400 text-[0.55rem] px-1.5 py-0.5 rounded border border-emerald-500/30">
-                NFT
-              </div>
+              <a
+                href={`https://basescan.org/nft/0x59FbA43625eF81460930a8770Ee9c69042311c1a/${m.nft_token_id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="absolute top-1 right-1 bg-orange-500/20 text-orange-400 text-[0.55rem] px-1.5 py-0.5 rounded border border-orange-500/30 hover:bg-orange-500/30 transition-colors"
+              >
+                Auction ↗
+              </a>
             )}
           </div>
         ))}
