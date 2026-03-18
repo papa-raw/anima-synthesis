@@ -113,11 +113,11 @@ export async function getWethBalance(walletAddress) {
 
 export async function getTokenHolderCount(tokenAddress) {
   try {
-    // Use Clanker World API to get holder count
-    const res = await fetch(`https://clanker.world/api/tokens/${tokenAddress}`);
+    // Use BaseScan API (free tier, no key needed for basic queries)
+    const res = await fetch(`https://base.blockscout.com/api/v2/tokens/${tokenAddress}`);
     if (!res.ok) return 0;
     const data = await res.json();
-    return data.holderCount || data.holder_count || 0;
+    return parseInt(data.holders_count || data.holders || data.holder_count || '0', 10);
   } catch {
     return 0;
   }
