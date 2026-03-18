@@ -1,4 +1,4 @@
-import { getEthBalance, getClaimableFees, claimFees, getEthPrice } from './clankerService.js';
+import { getEthBalance, getClaimableFees, claimFees, getEthPrice, getWethBalance, getTokenHolderCount } from './clankerService.js';
 import { pinToIpfs } from './ipfsService.js';
 
 const TICK_INTERVAL = 30 * 60 * 1000; // 30 minutes
@@ -88,9 +88,17 @@ async function runAgentTick(agent, db) {
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `).run(agent.id, ethBalance, claimable, runwayDays, action, txHash, ipfsCid);
 
-  // 8. Update agent record
-  db.prepare(`UPDATE agents SET eth_balance = ?, runway_days = ?, last_heartbeat = datetime('now')
-    WHERE id = ?`).run(ethBalance, runwayDays, agent.id);
+  // 8. Check WETH earned + holder count
+  let wethBalance = 0;
+  let holderCount = 0;
+  try {
+    if (agent.wallet_address) wethBalance = await getWethBalance(agent.wallet_address);
+    if (agent.token_address) holderCount = await getTokenHolderCount(agent.token_address);
+  } catch { /* non-critical */ }
 
-  console.log(`[${agent.id}] ${action} | ETH: ${ethBalance.toFixed(6)} | Fees: ${claimable.toFixed(6)} | Runway: ${runwayDays.toFixed(1)}d`);
+  // 9. Update agent record
+  db.prepare(`UPDATE agents SET eth_balance = ?, weth_earned_total = ?, runway_days = ?, holder_count = ?, last_heartbeat = datetime('now')
+    WHERE id = ?`).run(ethBalance, wethBalance, runwayDays, holderCount, agent.id);
+
+  console.log(`[${agent.id}] ${action} | ETH: ${ethBalance.toFixed(6)} | WETH: ${wethBalance.toFixed(6)} | Holders: ${holderCount} | Runway: ${runwayDays.toFixed(1)}d`);
 }

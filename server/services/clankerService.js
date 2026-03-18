@@ -87,6 +87,42 @@ export async function getEthBalance(walletAddress) {
   }
 }
 
+const WETH_ADDRESS = '0x4200000000000000000000000000000000000006';
+const ERC20_BALANCE_ABI = [{
+  inputs: [{ name: 'account', type: 'address' }],
+  name: 'balanceOf',
+  outputs: [{ name: '', type: 'uint256' }],
+  stateMutability: 'view',
+  type: 'function'
+}];
+
+export async function getWethBalance(walletAddress) {
+  try {
+    const raw = await publicClient.readContract({
+      address: WETH_ADDRESS,
+      abi: ERC20_BALANCE_ABI,
+      functionName: 'balanceOf',
+      args: [walletAddress]
+    });
+    return parseFloat(formatEther(raw));
+  } catch (e) {
+    console.error('WETH balance check failed:', e.message);
+    return 0;
+  }
+}
+
+export async function getTokenHolderCount(tokenAddress) {
+  try {
+    // Use Clanker World API to get holder count
+    const res = await fetch(`https://clanker.world/api/tokens/${tokenAddress}`);
+    if (!res.ok) return 0;
+    const data = await res.json();
+    return data.holderCount || data.holder_count || 0;
+  } catch {
+    return 0;
+  }
+}
+
 export async function getEthPrice() {
   try {
     const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');

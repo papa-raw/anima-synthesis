@@ -71,6 +71,7 @@ export default function App() {
               dailyCostUsd: apiAgent.daily_cost_usd || 0.50,
               tokenSymbol: apiAgent.token_symbol || staticAgent.tokenSymbol || '--',
               wethEarnedTotal: apiAgent.weth_earned_total || 0,
+              holderCount: apiAgent.holder_count || 0,
               beezieTokenId: apiAgent.beezie_token_id || staticAgent.beezieTokenId,
             };
           });
