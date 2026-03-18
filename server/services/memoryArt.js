@@ -72,43 +72,25 @@ export async function generateMemoryArt(agent, memory) {
       return null;
     }
 
-    // Pin to IPFS via Storacha
-    let ipfsCid = null;
-    try {
-      const blob = new Blob([imageBuffer], { type: 'image/png' });
-      const uploadRes = await fetch('https://api.web3.storage/upload', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.STORACHA_TOKEN}`,
-          'X-Name': `anima-art-${agent.id}-${Date.now()}.png`
-        },
-        body: blob
-      });
-      if (uploadRes.ok) {
-        const result = await uploadRes.json();
-        ipfsCid = result.cid;
-      }
-    } catch (e) {
-      console.warn('IPFS upload for memory art failed:', e.message);
-    }
+    // Save to disk immediately (skip IPFS for now — Storacha token may be expired)
+    const { mkdirSync, writeFileSync } = await import('fs');
+    const { join, dirname } = await import('path');
+    const { fileURLToPath } = await import('url');
+    const __dirname = dirname(fileURLToPath(import.meta.url));
+    const artDir = join(__dirname, '../../public/art');
+    mkdirSync(artDir, { recursive: true });
 
-    // Save to disk as fallback when IPFS unavailable
-    let localPath = null;
-    if (!ipfsCid) {
-      const { mkdirSync, writeFileSync } = await import('fs');
-      const { join, dirname } = await import('path');
-      const { fileURLToPath } = await import('url');
-      const __dirname = dirname(fileURLToPath(import.meta.url));
-      const artDir = join(__dirname, '../../public/art');
-      mkdirSync(artDir, { recursive: true });
-      // Detect format from buffer header
-      const isWebP = imageBuffer[0] === 0x52 && imageBuffer[1] === 0x49; // RIFF
-      const isPNG = imageBuffer[0] === 0x89 && imageBuffer[1] === 0x50; // PNG
-      const ext = isWebP ? 'webp' : isPNG ? 'png' : 'jpg';
-      const filename = `${agent.id}-${Date.now()}.${ext}`;
-      writeFileSync(join(artDir, filename), imageBuffer);
-      localPath = `${process.env.API_URL || 'https://api.anima.cards'}/art/${filename}`;
-    }
+    const isWebP = imageBuffer[0] === 0x52 && imageBuffer[1] === 0x49;
+    const isPNG = imageBuffer[0] === 0x89 && imageBuffer[1] === 0x50;
+    const ext = isWebP ? 'webp' : isPNG ? 'png' : 'jpg';
+    const filename = `${agent.id}-${Date.now()}.${ext}`;
+    const fullPath = join(artDir, filename);
+    writeFileSync(fullPath, imageBuffer);
+
+    console.log(`[${agent.id}] Art saved: ${filename} (${imageBuffer.length} bytes)`);
+
+    const ipfsCid = null;
+    const localPath = `${process.env.API_URL || 'https://api.anima.cards'}/art/${filename}`;
 
     const imageUrl = ipfsCid
       ? `https://w3s.link/ipfs/${ipfsCid}`
