@@ -102,7 +102,7 @@ export async function generateMemoryArt(agent, memory) {
       mkdirSync(artDir, { recursive: true });
       const filename = `${agent.id}-${Date.now()}.jpg`;
       writeFileSync(join(artDir, filename), imageBuffer);
-      localPath = `/art/${filename}`;
+      localPath = `${process.env.API_URL || 'https://api.anima.cards'}/art/${filename}`;
     }
 
     const imageUrl = ipfsCid
