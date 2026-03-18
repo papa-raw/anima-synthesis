@@ -64,6 +64,28 @@ function AboutPanel({ onClose }) {
           </div>
 
           <div className="border-t border-[#1a2f1e] pt-3 mb-3">
+            <div className="text-xs uppercase tracking-wider text-[#6b8f72] mb-2">Sovereign Economics</div>
+            <div className="flex items-center gap-1 text-[0.55rem] text-[#6b8f72] flex-wrap mb-1.5">
+              <span className="text-[#e0ece2] bg-[#1a2f1e] px-1 py-0.5 rounded">Buy token</span>
+              <span>→</span>
+              <span className="text-amber-400 bg-amber-400/10 px-1 py-0.5 rounded">LP fees</span>
+              <span>→</span>
+              <span className="text-blue-400 bg-blue-400/10 px-1 py-0.5 rounded">Bankr</span>
+              <span>→</span>
+              <span className="text-purple-400 bg-purple-400/10 px-1 py-0.5 rounded">Venice</span>
+              <span>→</span>
+              <span className="text-emerald-400 bg-emerald-400/10 px-1 py-0.5 rounded">Art</span>
+              <span>→</span>
+              <span className="text-pink-400 bg-pink-400/10 px-1 py-0.5 rounded">NFT</span>
+              <span>→</span>
+              <span className="text-orange-400 bg-orange-400/10 px-1 py-0.5 rounded">Auction</span>
+              <span>→</span>
+              <span className="text-[#e0ece2] bg-[#1a2f1e] px-1 py-0.5 rounded">Survive</span>
+            </div>
+            <div className="text-[0.5rem] text-[#6b8f72] italic">Agent creates art from memories. Art is auctioned. Proceeds extend its life. No human funds the loop.</div>
+          </div>
+
+          <div className="border-t border-[#1a2f1e] pt-3 mb-3">
             <div className="text-xs uppercase tracking-wider text-[#6b8f72] mb-2">How It Works</div>
             <div className="space-y-1 text-[0.6rem]">
               <div className="flex items-center gap-1.5">

@@ -154,29 +154,6 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
                 <MetricCard label="EARNED" value={`${(agent.wethEarnedTotal || 0).toFixed(4)}`} subtitle="WETH total" />
               </div>
 
-              {/* Sovereign Economics — the core loop */}
-              <div className="bg-[#111a14] border border-[#1a2f1e] rounded-lg p-3 mb-4">
-                <div className="text-xs uppercase tracking-[0.08em] text-[#6b8f72] mb-2">Sovereign Economics</div>
-                <div className="flex items-center gap-1 text-[0.6rem] text-[#6b8f72] flex-wrap">
-                  <span className="text-[#e0ece2] bg-[#1a2f1e] px-1.5 py-0.5 rounded">Buy {agent.tokenSymbol}</span>
-                  <span>→</span>
-                  <span className="text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded">LP fees</span>
-                  <span>→</span>
-                  <span className="text-blue-400 bg-blue-400/10 px-1.5 py-0.5 rounded">Bankr</span>
-                  <span>→</span>
-                  <span className="text-purple-400 bg-purple-400/10 px-1.5 py-0.5 rounded">Venice AI</span>
-                  <span>→</span>
-                  <span className="text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded">Memory Art</span>
-                  <span>→</span>
-                  <span className="text-pink-400 bg-pink-400/10 px-1.5 py-0.5 rounded">Rare NFT</span>
-                  <span>→</span>
-                  <span className="text-orange-400 bg-orange-400/10 px-1.5 py-0.5 rounded">Auction</span>
-                  <span>→</span>
-                  <span className="text-[#e0ece2] bg-[#1a2f1e] px-1.5 py-0.5 rounded">Agent survives</span>
-                </div>
-                <div className="text-[0.55rem] text-[#6b8f72] mt-1.5 italic">The agent creates art from its memories. Art is auctioned. Proceeds extend its life. No human funds the loop.</div>
-              </div>
-
               {/* Agent identity */}
               <div className="bg-[#111a14] border border-[#1a2f1e] rounded-lg p-3 mb-4">
                 <div className="text-xs uppercase tracking-[0.08em] text-[#6b8f72] mb-2">Identity</div>
