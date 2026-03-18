@@ -529,24 +529,35 @@ function MemoryGallery({ agentId, agentColor, artGenerating }) {
         )}
         {memories.map(m => (
           <div key={m.id} className="group relative">
-            <img
-              src={m.art_url}
-              alt={m.content}
-              className="w-full aspect-square object-cover rounded-lg border border-[#1a2f1e] group-hover:border-emerald-500/30 transition-colors"
-              loading="lazy"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f0a] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-end p-2">
-              <div className="text-xs text-[#e0ece2] leading-tight">{m.content}</div>
-            </div>
-            {m.art_ipfs_cid && (
-              <a
-                href={`https://w3s.link/ipfs/${m.art_ipfs_cid}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="absolute top-1 right-1 bg-[#0a0f0a]/80 text-[#6b8f72] text-[0.55rem] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:text-emerald-400"
-              >
-                IPFS ↗
+            {m.nft_token_id ? (
+              <a href={`https://basescan.org/nft/${m.nft_contract}/${m.nft_token_id}`} target="_blank" rel="noopener noreferrer">
+                <img
+                  src={m.art_url}
+                  alt={m.content}
+                  className="w-full aspect-square object-cover rounded-lg border border-[#1a2f1e] group-hover:border-emerald-500/30 transition-colors cursor-pointer"
+                  loading="lazy"
+                />
               </a>
+            ) : (
+              <img
+                src={m.art_url}
+                alt={m.content}
+                className="w-full aspect-square object-cover rounded-lg border border-[#1a2f1e] group-hover:border-emerald-500/30 transition-colors"
+                loading="lazy"
+              />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f0a] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-end p-2 pointer-events-none">
+              <div>
+                <div className="text-xs text-[#e0ece2] leading-tight">{m.content}</div>
+                {m.nft_token_id && (
+                  <div className="text-[0.6rem] text-emerald-400 mt-0.5">NFT #{m.nft_token_id} on Rare Protocol ↗</div>
+                )}
+              </div>
+            </div>
+            {m.nft_token_id && (
+              <div className="absolute top-1 right-1 bg-emerald-500/20 text-emerald-400 text-[0.55rem] px-1.5 py-0.5 rounded border border-emerald-500/30">
+                NFT
+              </div>
             )}
           </div>
         ))}

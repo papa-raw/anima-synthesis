@@ -29,7 +29,7 @@ router.get('/:id/memories', (req, res) => {
   res.set('Cache-Control', 'no-store');
   const db = getDb();
   const memories = db.prepare(
-    'SELECT id, memory_type, content, art_url, art_ipfs_cid, art_prompt, trainer_wallet, created_at FROM agent_memories WHERE agent_id = ? ORDER BY created_at DESC LIMIT 50'
+    'SELECT id, memory_type, content, art_url, art_ipfs_cid, art_prompt, nft_token_id, nft_contract, trainer_wallet, created_at FROM agent_memories WHERE agent_id = ? ORDER BY created_at DESC LIMIT 50'
   ).all(req.params.id);
   res.json(memories);
 });
