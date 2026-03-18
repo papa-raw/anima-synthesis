@@ -146,11 +146,19 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
                 <MetricCard label="EARNED" value={`${(agent.wethEarnedTotal || 0).toFixed(4)}`} subtitle="WETH total" />
               </div>
 
-              {/* Requirements */}
-              <div className="space-y-2 mb-4">
-                <div className="text-xs uppercase tracking-wider text-[#6b8f72]">Capture Requirements</div>
-                <Requirement met={!!(azusdBalance && azusdBalance.holds)} text={`Hold ≥${AZUSD_INFO.required} AZUSD on Base`} />
-                <Requirement met={false} text="Physical presence in bioregion (GPS + Astral proof)" />
+              {/* Agent identity */}
+              <div className="bg-[#111a14] border border-[#1a2f1e] rounded-lg p-3 mb-4">
+                <div className="text-xs uppercase tracking-[0.08em] text-[#6b8f72] mb-2">Identity</div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                  <span className="text-[#6b8f72]">Card</span>
+                  <span className="text-[#e0ece2]">{agent.set} #{agent.cardNumber}</span>
+                  <span className="text-[#6b8f72]">Grade</span>
+                  <span className="text-[#e0ece2]">{agent.grade}</span>
+                  <span className="text-[#6b8f72]">Element</span>
+                  <span className="text-[#e0ece2] capitalize">{agent.element}</span>
+                  <span className="text-[#6b8f72]">Bioregion</span>
+                  <span className="text-[#e0ece2]">{agent.bioregionName}</span>
+                </div>
               </div>
             </div>
           )}
@@ -184,32 +192,51 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
           )}
         </div>
 
-        {/* Bottom bar: capture + requirements */}
+        {/* Bottom bar: capture area */}
         <div className="border-t border-[#1a2f1e] p-3 space-y-2">
-          <div className="flex items-center gap-2 text-xs text-[#6b8f72]">
-            <TreePalm size={12} />
-            {walletAddress && azusdBalance ? (
-              <span className={azusdBalance.holds ? 'text-emerald-400' : 'text-[#6b8f72]'}>
-                {azusdBalance.holds ? `${parseFloat(azusdBalance.balance).toFixed(2)} AZUSD` : '0 AZUSD'}
-              </span>
-            ) : (
-              <span>Hold AZUSD</span>
-            )}
-            <span className="text-[#1a2f1e]">|</span>
-            <MapPin size={12} /> <span>Be in bioregion</span>
-          </div>
-          {walletAddress && azusdBalance && !azusdBalance.holds && (
-            <a href={AZUSD_INFO.buyUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-[0.7rem] text-[#6b8f72] hover:text-emerald-400 transition-colors">
-              <Coin size={10} /> Need ≥{AZUSD_INFO.required} AZUSD — swap ETH → AZUSD on Hydrex
-            </a>
+          {agent.status === 'wild' && (
+            <>
+              {/* Requirements checklist */}
+              <div className="space-y-1.5 mb-2">
+                <Requirement
+                  met={!!walletAddress}
+                  text={walletAddress ? `Wallet connected` : 'Connect wallet to capture'}
+                />
+                {walletAddress && (
+                  <>
+                    <Requirement
+                      met={!!(azusdBalance && azusdBalance.holds)}
+                      text={azusdBalance?.holds
+                        ? `${parseFloat(azusdBalance.balance).toFixed(2)} AZUSD`
+                        : `Need ≥${AZUSD_INFO.required} AZUSD`}
+                    />
+                    {azusdBalance && !azusdBalance.holds && (
+                      <a href={AZUSD_INFO.buyUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-[0.65rem] text-[#6b8f72] hover:text-emerald-400 transition-colors ml-6">
+                        Swap ETH → AZUSD on Hydrex ↗
+                      </a>
+                    )}
+                    <Requirement met={false} text={`Be in ${agent.bioregionName}`} />
+                  </>
+                )}
+              </div>
+            </>
           )}
-          <button
-            onClick={onCapture}
-            disabled={agent.status !== 'wild'}
-            className={`w-full py-2 rounded-lg font-bold text-sm text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed bg-gradient-to-r ${elementType.gradient}`}
-          >
-            {agent.status === 'wild' ? 'CAPTURE' : agent.status === 'captured' ? 'CAPTURED' : 'DEAD'}
-          </button>
+          {!walletAddress && agent.status === 'wild' ? (
+            <button
+              disabled
+              className="w-full py-2.5 rounded-lg font-bold text-sm text-[#6b8f72] bg-[#111a14] border border-[#1a2f1e] cursor-not-allowed"
+            >
+              Connect Wallet to Capture
+            </button>
+          ) : (
+            <button
+              onClick={onCapture}
+              disabled={agent.status !== 'wild'}
+              className={`w-full py-2.5 rounded-lg font-bold text-sm text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed bg-gradient-to-r ${elementType.gradient}`}
+            >
+              {agent.status === 'wild' ? 'CAPTURE' : agent.status === 'captured' ? 'CAPTURED' : 'DEAD'}
+            </button>
+          )}
         </div>
       </div>
     </>
