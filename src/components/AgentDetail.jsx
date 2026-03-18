@@ -491,6 +491,19 @@ function MemoryGallery({ agentId, agentColor, artGenerating }) {
       .catch(() => setLoading(false));
   }, [agentId]);
 
+  // Auto-refresh when art is being generated (must be before any conditional returns)
+  useEffect(() => {
+    if (artGenerating === 'formed') {
+      const timer = setTimeout(() => {
+        fetch(`/api/agents/${agentId}/memories?_=${Date.now()}`, { cache: 'no-store' })
+          .then(r => r.json())
+          .then(data => setMemories(data.filter(m => m.art_url)))
+          .catch(() => {});
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [artGenerating]);
+
   if (loading) return <div className="p-4 text-center text-[#6b8f72] text-sm">Loading memories...</div>;
 
   if (memories.length === 0) {
@@ -502,20 +515,6 @@ function MemoryGallery({ agentId, agentColor, artGenerating }) {
       </div>
     );
   }
-
-  // Auto-refresh when art is being generated
-  useEffect(() => {
-    if (artGenerating === 'formed') {
-      // Refetch memories after art is generated
-      const timer = setTimeout(() => {
-        fetch(`/api/agents/${agentId}/memories?_=${Date.now()}`, { cache: 'no-store' })
-          .then(r => r.json())
-          .then(data => setMemories(data.filter(m => m.art_url)))
-          .catch(() => {});
-      }, 5000); // Wait 5s for Venice to finish generating
-      return () => clearTimeout(timer);
-    }
-  }, [artGenerating]);
 
   return (
     <div className="p-3">
