@@ -6,12 +6,16 @@
 import { createWalletClient, createPublicClient, http } from 'viem';
 import { base } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
-import { readFileSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
 const BEEZIE_CONTRACT = '0xbb5ec6fd4b61723bd45c399840f1d868840ca16f';
+
+const AGENT_KEYS = {
+  'agent-phanpy': process.env.AGENT_PHANPY_PRIVATE_KEY,
+  'agent-2': process.env.AGENT_2_PRIVATE_KEY,
+  'agent-ponyta': process.env.AGENT_2_PRIVATE_KEY,
+  'agent-3': process.env.AGENT_3_PRIVATE_KEY,
+  'agent-magnemite': process.env.AGENT_3_PRIVATE_KEY,
+};
 
 const ERC721_ABI = [
   {
@@ -32,27 +36,14 @@ const publicClient = createPublicClient({
   transport: http(process.env.BASE_RPC_URL || 'https://mainnet.base.org')
 });
 
-// Load agent wallets
-let wallets = null;
-function getWallets() {
-  if (wallets) return wallets;
-  try {
-    const path = join(__dirname, '..', 'agents', 'wallets.json');
-    wallets = JSON.parse(readFileSync(path, 'utf8'));
-    return wallets;
-  } catch {
-    return [];
-  }
-}
-
 /**
  * Transfer Beezie NFT from agent wallet to catcher on successful capture
  */
 export async function transferNftToCatcher(agentId, catcherAddress, beezieTokenId) {
-  const agentWallet = getWallets().find(w => w.id === agentId);
-  if (!agentWallet) throw new Error(`No wallet found for agent ${agentId}`);
+  const key = AGENT_KEYS[agentId];
+  if (!key) throw new Error(`No private key for ${agentId}. Set env var.`);
 
-  const account = privateKeyToAccount(agentWallet.privateKey);
+  const account = privateKeyToAccount(key);
   const walletClient = createWalletClient({
     account,
     chain: base,
