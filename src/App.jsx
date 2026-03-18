@@ -11,36 +11,7 @@ import { AGENTS } from './data/agents.js';
 
 const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true';
 
-function InfoOrb() {
-  const [open, setOpen] = useState(false);
-  return (
-    <>
-      <button
-        onClick={() => setOpen(!open)}
-        className="fixed bottom-24 right-4 z-30 w-10 h-10 rounded-full bg-[#111a14] border border-[#1a2f1e] flex items-center justify-center text-[#6b8f72] hover:text-emerald-400 hover:border-emerald-500/30 transition-colors"
-      >
-        <span className="text-sm font-bold">i</span>
-      </button>
-      {open && (
-        <div className="fixed bottom-36 right-4 z-30 w-80 bg-[#0a0f0a] border border-[#1a2f1e] rounded-lg p-4 text-sm">
-          <div className="text-emerald-400 font-bold mb-2">Anima — Synthesis Hackathon</div>
-          <p className="text-[#6b8f72] mb-2">
-            Autonomous Pokemon agents ensouled on Base. Each agent issues its own token to fund its survival.
-            Capture them by proving you're physically in their bioregion with an Astral location proof —
-            but only if you hold a matching-type Beezie NFT.
-          </p>
-          <p className="text-[#6b8f72] mb-2">
-            <span className="text-[#e0ece2]">Ensoulment</span> → <span className="text-[#e0ece2]">Release</span> → <span className="text-[#e0ece2]">Capture</span>
-          </p>
-          <div className="text-[0.6rem] text-[#6b8f72] mt-2 pt-2 border-t border-[#1a2f1e]">
-            Built by paparaw.eth × Komakohawk (Claude Opus 4.6)
-          </div>
-          <button onClick={() => setOpen(false)} className="absolute top-2 right-3 text-[#6b8f72] hover:text-[#e0ece2]">✕</button>
-        </div>
-      )}
-    </>
-  );
-}
+// InfoOrb removed — replaced by About panel in Header
 const POLL_INTERVAL = 30000; // 30s
 
 export default function App() {
@@ -160,7 +131,7 @@ export default function App() {
       />
 
       {/* Info button — bottom right above dock */}
-      <InfoOrb />
+      {/* About panel moved to Header */}
 
       {selectedAgent && !captureMode && (
         <AgentDetail
