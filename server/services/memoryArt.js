@@ -44,6 +44,7 @@ export async function generateMemoryArt(agent, memory) {
         height: 1024,
         format: 'png',
         steps: 8,
+        safe_mode: false,
         hide_watermark: true
       })
     });
