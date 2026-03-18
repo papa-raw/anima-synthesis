@@ -207,7 +207,7 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
                       <span>Agent Wallet</span>
                       <span className="font-mono">{(agent.wallet_address || '').slice(0, 8)}... ↗</span>
                     </a>
-                    <a href="https://basescan.org/nft/0x59FbA43625eF81460930a8770Ee9c69042311c1a" target="_blank" rel="noopener noreferrer" className="flex justify-between hover:text-emerald-400 text-[#6b8f72]">
+                    <a href="https://basescan.org/token/0x59FbA43625eF81460930a8770Ee9c69042311c1a" target="_blank" rel="noopener noreferrer" className="flex justify-between hover:text-emerald-400 text-[#6b8f72]">
                       <span>Memory NFTs (Rare Protocol)</span>
                       <span>View collection ↗</span>
                     </a>
