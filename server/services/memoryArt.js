@@ -40,10 +40,9 @@ export async function generateMemoryArt(agent, memory) {
       body: JSON.stringify({
         model: 'flux-2-max',
         prompt: artPrompt,
-        width: 1024,
-        height: 1024,
+        width: 768,
+        height: 768,
         format: 'webp',
-        steps: 8,
         safe_mode: false,
         hide_watermark: true
       })
