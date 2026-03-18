@@ -69,9 +69,9 @@ router.post('/', async (req, res) => {
     }
   }
 
-  // 7. Update agent status
-  db.prepare(`UPDATE agents SET status = 'captured', captured_by = ?, captured_at = datetime('now') WHERE id = ?`)
-    .run(catcherWallet, agentId);
+  // 7. Update agent status + store NFT tx hash
+  db.prepare(`UPDATE agents SET status = 'captured', captured_by = ?, captured_at = datetime('now'), nft_tx_hash = ? WHERE id = ?`)
+    .run(catcherWallet, nftTxHash, agentId);
 
   const updated = db.prepare('SELECT * FROM agents WHERE id = ?').get(agentId);
   res.json({ captured: true, agent: updated, nftTxHash });

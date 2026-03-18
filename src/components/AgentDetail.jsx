@@ -160,6 +160,49 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
                   <span className="text-[#e0ece2]">{agent.bioregionName}</span>
                 </div>
               </div>
+
+              {/* Capture history (shown when captured) */}
+              {agent.status === 'captured' && agent.captured_by && (
+                <div className="bg-[#111a14] border border-emerald-500/20 rounded-lg p-3 mb-4">
+                  <div className="text-xs uppercase tracking-[0.08em] text-emerald-400 mb-2">Captured</div>
+                  <div className="space-y-1.5 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-[#6b8f72]">Catcher</span>
+                      <a href={`https://basescan.org/address/${agent.captured_by}`} target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:underline font-mono">
+                        {agent.captured_by.slice(0, 6)}...{agent.captured_by.slice(-4)} ↗
+                      </a>
+                    </div>
+                    {agent.captured_at && (
+                      <div className="flex justify-between">
+                        <span className="text-[#6b8f72]">Time</span>
+                        <span className="text-[#e0ece2]">{new Date(agent.captured_at + 'Z').toLocaleString()}</span>
+                      </div>
+                    )}
+                    {agent.nftTxHash && (
+                      <div className="flex justify-between">
+                        <span className="text-[#6b8f72]">NFT Transfer</span>
+                        <a href={`https://basescan.org/tx/${agent.nftTxHash}`} target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:underline font-mono">
+                          {agent.nftTxHash.slice(0, 10)}... ↗
+                        </a>
+                      </div>
+                    )}
+                    {agent.token_address && (
+                      <div className="flex justify-between">
+                        <span className="text-[#6b8f72]">Token</span>
+                        <a href={`https://basescan.org/token/${agent.token_address}`} target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:underline font-mono">
+                          {agent.tokenSymbol} ↗
+                        </a>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-[#6b8f72]">Beezie NFT</span>
+                      <a href={`https://basescan.org/token/0xbb5ec6fd4b61723bd45c399840f1d868840ca16f?a=${agent.beezieTokenId}`} target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:underline font-mono">
+                        #{agent.beezieTokenId} ↗
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

@@ -72,6 +72,7 @@ export default function App() {
               tokenSymbol: apiAgent.token_symbol || staticAgent.tokenSymbol || '--',
               wethEarnedTotal: apiAgent.weth_earned_total || 0,
               holderCount: apiAgent.holder_count || 0,
+              nftTxHash: apiAgent.nft_tx_hash || null,
               beezieTokenId: apiAgent.beezie_token_id || staticAgent.beezieTokenId,
             };
           });
