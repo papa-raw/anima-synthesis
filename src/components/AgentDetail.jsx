@@ -393,9 +393,10 @@ function SoulChat({ agent, walletAddress, messages: savedMessages, onMessagesCha
       });
       const data = await res.json();
       setMessages(m => [...m, { role: 'agent', text: data.response || `*${agent.pokemon} stares at you silently*` }]);
-      // Show memory distillation indicator (server distills async after response)
-      setMemoryForming(true);
-      setTimeout(() => setMemoryForming(false), 2500);
+      // Show memory distillation indicator — lingers then updates
+      setMemoryForming('forming');
+      setTimeout(() => setMemoryForming('formed'), 4000);
+      setTimeout(() => setMemoryForming(false), 8000);
     } catch (e) {
       setMessages(m => [...m, { role: 'agent', text: `*${agent.pokemon} stares at you silently*` }]);
     }
@@ -418,7 +419,7 @@ function SoulChat({ agent, walletAddress, messages: savedMessages, onMessagesCha
                   ? 'bg-[#1a2f1e] text-[#e0ece2]'
                   : 'text-[#e0ece2]'
               }`} style={msg.role === 'agent' ? { background: `${agent.color}15`, borderLeft: `2px solid ${agent.color}40` } : {}}>
-                {msg.text}
+                {msg.role === 'agent' ? formatAgentMessage(msg.text, agent.color) : msg.text}
               </div>
             </div>
           ))}
@@ -431,7 +432,11 @@ function SoulChat({ agent, walletAddress, messages: savedMessages, onMessagesCha
           )}
           {memoryForming && (
             <div className="flex justify-start pl-2">
-              <span className="text-xs italic text-[#6b8f72] opacity-60">memory forming...</span>
+              {memoryForming === 'forming' ? (
+                <span className="text-xs italic text-[#6b8f72] opacity-60 animate-pulse">memory forming...</span>
+              ) : (
+                <span className="text-xs italic text-emerald-400/70">memory formed — check Art tab</span>
+              )}
             </div>
           )}
         </div>
@@ -525,6 +530,23 @@ function MemoryGallery({ agentId, agentColor }) {
       </div>
     </div>
   );
+}
+
+/**
+ * Format agent messages: style *actions* in italic/muted, regular speech normally
+ */
+function formatAgentMessage(text, color) {
+  // Split on *action* markers
+  const parts = text.split(/(\*[^*]+\*)/g);
+  if (parts.length === 1) return text;
+
+  return parts.map((part, i) => {
+    if (part.startsWith('*') && part.endsWith('*')) {
+      // Action/emote — italic, muted color
+      return <span key={i} className="italic text-[#6b8f72] text-xs block mb-1">{part}</span>;
+    }
+    return <span key={i}>{part}</span>;
+  });
 }
 
 // Soul prompt lives on server (server/routes/chat.js) — agent pays for its own inference

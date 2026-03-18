@@ -42,7 +42,7 @@ export async function generateMemoryArt(agent, memory) {
         prompt: artPrompt,
         width: 1024,
         height: 1024,
-        format: 'png',
+        format: 'webp',
         steps: 8,
         safe_mode: false,
         hide_watermark: true
