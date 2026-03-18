@@ -24,6 +24,16 @@ router.get('/:id/status', (req, res) => {
   res.json({ ...agent, recentHeartbeats: heartbeats });
 });
 
+// GET /api/agents/:id/memories — memories with art
+router.get('/:id/memories', (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  const db = getDb();
+  const memories = db.prepare(
+    'SELECT id, memory_type, content, art_url, art_ipfs_cid, art_prompt, trainer_wallet, created_at FROM agent_memories WHERE agent_id = ? ORDER BY created_at DESC LIMIT 50'
+  ).all(req.params.id);
+  res.json(memories);
+});
+
 // GET /api/agents/:id/heartbeats — heartbeat history
 router.get('/:id/heartbeats', (req, res) => {
   const db = getDb();

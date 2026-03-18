@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import StatusPill from './StatusPill.jsx';
 import { ELEMENT_TYPES } from '../data/types.js';
-import { Wallet, Timer, Coin, Users, Lightning, TreePalm, MapPin, ChatCircleDots, X, Info, Cards } from '@phosphor-icons/react';
+import { Wallet, Timer, Coin, Users, Lightning, TreePalm, MapPin, ChatCircleDots, X, Info, Cards, ImageSquare } from '@phosphor-icons/react';
 import { checkAzusdBalance, AZUSD_INFO } from '../services/conservationService.js';
 
 function getRunwayDisplay(days, status, ethBalance) {
@@ -119,6 +119,12 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
             <ChatCircleDots size={14} /> Soul
           </button>
           <button
+            onClick={() => setTab('gallery')}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium transition-colors ${tab === 'gallery' ? 'text-emerald-400 border-b-2 border-emerald-400' : 'text-[#6b8f72] hover:text-[#e0ece2]'}`}
+          >
+            <ImageSquare size={14} /> Art
+          </button>
+          <button
             onClick={() => setTab('card')}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium transition-colors ${tab === 'card' ? 'text-emerald-400 border-b-2 border-emerald-400' : 'text-[#6b8f72] hover:text-[#e0ece2]'}`}
           >
@@ -204,6 +210,10 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
                 </div>
               )}
             </div>
+          )}
+
+          {tab === 'gallery' && (
+            <MemoryGallery agentId={agent.id} agentColor={agent.color} />
           )}
 
           {tab === 'card' && (
@@ -397,6 +407,63 @@ function getGreeting(agent) {
     fire: `*${agent.pokemon} flares brightly in the ${agent.bioregionName}* Approach carefully, traveler.`,
   };
   return greetings[agent.element] || `*${agent.pokemon} regards you curiously from the ${agent.bioregionName}*`;
+}
+
+function MemoryGallery({ agentId, agentColor }) {
+  const [memories, setMemories] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`/api/agents/${agentId}/memories?_=${Date.now()}`, { cache: 'no-store' })
+      .then(r => r.json())
+      .then(data => {
+        setMemories(data.filter(m => m.art_url));
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [agentId]);
+
+  if (loading) return <div className="p-4 text-center text-[#6b8f72] text-sm">Loading memories...</div>;
+
+  if (memories.length === 0) {
+    return (
+      <div className="p-6 text-center">
+        <ImageSquare size={32} className="text-[#6b8f72] mx-auto mb-2 opacity-50" />
+        <div className="text-sm text-[#6b8f72]">No memory art yet</div>
+        <div className="text-xs text-[#6b8f72] opacity-60 mt-1">Chat with this agent to create memories. Each memory generates unique art via Venice AI.</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-3">
+      <div className="grid grid-cols-2 gap-2">
+        {memories.map(m => (
+          <div key={m.id} className="group relative">
+            <img
+              src={m.art_url}
+              alt={m.content}
+              className="w-full aspect-square object-cover rounded-lg border border-[#1a2f1e] group-hover:border-emerald-500/30 transition-colors"
+              loading="lazy"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f0a] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-end p-2">
+              <div className="text-xs text-[#e0ece2] leading-tight">{m.content}</div>
+            </div>
+            {m.art_ipfs_cid && (
+              <a
+                href={`https://w3s.link/ipfs/${m.art_ipfs_cid}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="absolute top-1 right-1 bg-[#0a0f0a]/80 text-[#6b8f72] text-[0.55rem] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:text-emerald-400"
+              >
+                IPFS ↗
+              </a>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 // Soul prompt lives on server (server/routes/chat.js) — agent pays for its own inference

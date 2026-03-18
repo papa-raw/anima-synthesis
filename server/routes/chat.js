@@ -4,6 +4,7 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { getDb } from '../db/init.js';
 import { agentInference, devInference } from '../services/inferenceService.js';
+import { generateMemoryArt } from '../services/memoryArt.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -104,9 +105,20 @@ Rules:
     const cleaned = memory.trim();
 
     if (cleaned && cleaned !== 'SKIP' && cleaned.length > 5 && cleaned.length < 200) {
-      db.prepare(
+      const result = db.prepare(
         'INSERT INTO agent_memories (agent_id, memory_type, content, emotional_valence, importance, trainer_wallet, source) VALUES (?, ?, ?, ?, ?, ?, ?)'
       ).run(agentId, 'encounter', cleaned, 0, 0.5, trainerWallet, 'conversation');
+
+      // Generate memory art (async, don't block)
+      const agent = db.prepare('SELECT * FROM agents WHERE id = ?').get(agentId);
+      if (agent) {
+        generateMemoryArt(agent, cleaned).then(art => {
+          if (art) {
+            db.prepare('UPDATE agent_memories SET art_url = ?, art_ipfs_cid = ?, art_prompt = ? WHERE id = ?')
+              .run(art.imageUrl, art.ipfsCid, art.prompt, result.lastInsertRowid);
+          }
+        }).catch(() => {});
+      }
 
       // Compress if too many memories
       await compressMemories(db, agentId, pokemon);
