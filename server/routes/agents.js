@@ -5,6 +5,7 @@ const router = Router();
 
 // GET /api/agents — all agents with live status
 router.get('/', (req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
   const db = getDb();
   const agents = db.prepare('SELECT * FROM agents ORDER BY created_at').all();
   res.json(agents);

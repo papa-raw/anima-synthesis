@@ -1,7 +1,7 @@
 const API_BASE = import.meta.env.DEV ? '' : ''; // Vite proxy handles /api in dev
 
 export async function getAgents() {
-  const res = await fetch('/api/agents');
+  const res = await fetch(`/api/agents?_=${Date.now()}`, { cache: 'no-store' });
   if (!res.ok) throw new Error(`Failed to fetch agents: ${res.status}`);
   return res.json();
 }
