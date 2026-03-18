@@ -47,7 +47,7 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
   const [memoryForming, setMemoryForming] = useState(false); // shared between Soul + Art tabs
 
   useEffect(() => {
-    if (!walletAddress) { setTgnBalance(null); return; }
+    if (!walletAddress) { setTokenGate(null); return; }
     if (agent?.token_address) checkTokenGate(walletAddress, agent.token_address, agent.tokenSymbol).then(setTokenGate);
   }, [walletAddress]);
 

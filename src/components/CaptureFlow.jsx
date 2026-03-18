@@ -63,7 +63,7 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
     if (stepNum === 0) {
       setStates(s => ({ ...s, conservation: 'checking' }));
       if (demoWallet) {
-        setTgnBalance('100.00');
+        setTokenBalance('1,000,000');
         setStates(s => ({ ...s, conservation: 'verified' }));
         setStep(1);
         setTimeout(() => executeStep(1), 500);
