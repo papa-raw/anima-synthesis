@@ -124,7 +124,7 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
             onClick={() => setTab('gallery')}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium transition-colors ${tab === 'gallery' ? 'text-emerald-400 border-b-2 border-emerald-400' : 'text-[#6b8f72] hover:text-[#e0ece2]'}`}
           >
-            <ImageSquare size={14} /> Art
+            <ImageSquare size={14} /> Memories
           </button>
           <button
             onClick={() => setTab('card')}
