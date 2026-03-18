@@ -154,6 +154,25 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
                 <MetricCard label="EARNED" value={`${(agent.wethEarnedTotal || 0).toFixed(4)}`} subtitle="WETH total" />
               </div>
 
+              {/* Sovereign Economics — the core loop */}
+              <div className="bg-[#111a14] border border-[#1a2f1e] rounded-lg p-3 mb-4">
+                <div className="text-xs uppercase tracking-[0.08em] text-[#6b8f72] mb-2">Sovereign Economics</div>
+                <div className="flex items-center gap-1 text-[0.6rem] text-[#6b8f72] flex-wrap">
+                  <span className="text-[#e0ece2] bg-[#1a2f1e] px-1.5 py-0.5 rounded">Buy {agent.tokenSymbol}</span>
+                  <span>→</span>
+                  <span className="text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded">Uniswap V4 LP fees</span>
+                  <span>→</span>
+                  <span className="text-blue-400 bg-blue-400/10 px-1.5 py-0.5 rounded">Bankr Gateway</span>
+                  <span>→</span>
+                  <span className="text-purple-400 bg-purple-400/10 px-1.5 py-0.5 rounded">Venice AI</span>
+                  <span>→</span>
+                  <span className="text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded">Think + Create Art</span>
+                  <span>→</span>
+                  <span className="text-pink-400 bg-pink-400/10 px-1.5 py-0.5 rounded">Rare Protocol NFT</span>
+                </div>
+                <div className="text-[0.55rem] text-[#6b8f72] mt-1.5 italic">No human credit card. Agent funds its own inference from token trading fees.</div>
+              </div>
+
               {/* Agent identity */}
               <div className="bg-[#111a14] border border-[#1a2f1e] rounded-lg p-3 mb-4">
                 <div className="text-xs uppercase tracking-[0.08em] text-[#6b8f72] mb-2">Identity</div>
@@ -166,8 +185,35 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
                   <span className="text-[#e0ece2] capitalize">{agent.element}</span>
                   <span className="text-[#6b8f72]">Bioregion</span>
                   <span className="text-[#e0ece2]">{agent.bioregionName}</span>
+                  {agent.last_heartbeat && (
+                    <>
+                      <span className="text-[#6b8f72]">Last heartbeat</span>
+                      <span className="text-emerald-400">{new Date(agent.last_heartbeat + 'Z').toLocaleTimeString()}</span>
+                    </>
+                  )}
                 </div>
               </div>
+
+              {/* Onchain activity */}
+              {agent.token_address && (
+                <div className="bg-[#111a14] border border-[#1a2f1e] rounded-lg p-3 mb-4">
+                  <div className="text-xs uppercase tracking-[0.08em] text-[#6b8f72] mb-2">Onchain</div>
+                  <div className="space-y-1 text-xs">
+                    <a href={`https://basescan.org/token/${agent.token_address}`} target="_blank" rel="noopener noreferrer" className="flex justify-between hover:text-emerald-400 text-[#6b8f72]">
+                      <span>{agent.tokenSymbol} Token</span>
+                      <span className="font-mono">{agent.token_address.slice(0, 8)}... ↗</span>
+                    </a>
+                    <a href={`https://basescan.org/address/${agent.wallet_address || ''}`} target="_blank" rel="noopener noreferrer" className="flex justify-between hover:text-emerald-400 text-[#6b8f72]">
+                      <span>Agent Wallet</span>
+                      <span className="font-mono">{(agent.wallet_address || '').slice(0, 8)}... ↗</span>
+                    </a>
+                    <a href="https://basescan.org/nft/0x59FbA43625eF81460930a8770Ee9c69042311c1a" target="_blank" rel="noopener noreferrer" className="flex justify-between hover:text-emerald-400 text-[#6b8f72]">
+                      <span>Memory NFTs (Rare Protocol)</span>
+                      <span>View collection ↗</span>
+                    </a>
+                  </div>
+                </div>
+              )}
 
               {/* Capture history (shown when captured) */}
               {agent.status === 'captured' && agent.captured_by && (
@@ -407,9 +453,12 @@ function SoulChat({ agent, walletAddress, messages: savedMessages, onMessagesCha
 
   return (
     <div className="flex flex-col h-full px-3 pb-2">
-      <div className="flex items-center gap-1 py-2">
-        <ChatCircleDots size={12} className="text-[#6b8f72]" />
-        <span className="text-xs uppercase tracking-wider text-[#6b8f72]">Soul Link</span>
+      <div className="flex items-center justify-between py-2">
+        <div className="flex items-center gap-1">
+          <ChatCircleDots size={12} className="text-[#6b8f72]" />
+          <span className="text-xs uppercase tracking-wider text-[#6b8f72]">Soul Link</span>
+        </div>
+        <span className="text-[0.5rem] text-[#6b8f72] opacity-50">via Bankr → Venice AI (zero retention)</span>
       </div>
       <div className="flex-1 min-h-0 bg-[#111a14] border border-[#1a2f1e] rounded-lg overflow-hidden flex flex-col">
         {/* Messages — fills available space */}
@@ -516,8 +565,16 @@ function MemoryGallery({ agentId, agentColor, artGenerating }) {
     );
   }
 
+  const nftCount = memories.filter(m => m.nft_token_id).length;
+
   return (
     <div className="p-3">
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-xs text-[#6b8f72]">
+          {memories.length} {memories.length === 1 ? 'memory' : 'memories'}{nftCount > 0 && ` · ${nftCount} minted as NFT`}
+        </div>
+        <span className="text-[0.5rem] text-[#6b8f72] opacity-50">Venice Flux → Rare Protocol</span>
+      </div>
       <div className="grid grid-cols-2 gap-2">
         {artGenerating === 'forming' && (
           <div className="aspect-square rounded-lg border border-[#1a2f1e] bg-[#111a14] flex items-center justify-center">

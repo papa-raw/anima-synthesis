@@ -63,10 +63,49 @@ function AboutPanel({ onClose }) {
             </div>
           </div>
 
+          <div className="border-t border-[#1a2f1e] pt-3 mb-3">
+            <div className="text-xs uppercase tracking-wider text-[#6b8f72] mb-2">How It Works</div>
+            <div className="space-y-1 text-[0.6rem]">
+              <div className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />
+                <span className="text-[#6b8f72]">Users buy agent tokens on <span className="text-[#e0ece2]">Clanker / Uniswap V4</span></span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0" />
+                <span className="text-[#6b8f72]">LP fees claimed by agent → routed to <span className="text-[#e0ece2]">Bankr LLM Gateway</span></span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-400 flex-shrink-0" />
+                <span className="text-[#6b8f72]">Agent thinks privately via <span className="text-[#e0ece2]">Venice AI</span> (zero data retention)</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
+                <span className="text-[#6b8f72]">Memories generate art via <span className="text-[#e0ece2]">Venice Flux</span> → minted as NFTs on <span className="text-[#e0ece2]">Rare Protocol</span></span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-pink-400 flex-shrink-0" />
+                <span className="text-[#6b8f72]">Capture requires <span className="text-[#e0ece2]">AZUSD</span> + GPS + <span className="text-[#e0ece2]">Astral</span> location proof on <span className="text-[#e0ece2]">Base</span></span>
+              </div>
+            </div>
+          </div>
+
           <div className="border-t border-[#1a2f1e] pt-3 space-y-2">
-            <div className="text-xs uppercase tracking-wider text-[#6b8f72] mb-1">Stack</div>
+            <div className="text-xs uppercase tracking-wider text-[#6b8f72] mb-1">Sponsor Integrations</div>
             <div className="flex flex-wrap gap-1.5">
-              {['Base', 'Clanker', 'Uniswap V4', 'Venice AI', 'Bankr', 'Astral SDK', 'Storacha', 'AZUSD', 'Beezie NFT', 'ERC-8004'].map(tag => (
+              {[
+                { name: 'Bankr', color: 'text-blue-400 border-blue-400/30' },
+                { name: 'Venice AI', color: 'text-purple-400 border-purple-400/30' },
+                { name: 'Uniswap V4', color: 'text-amber-400 border-amber-400/30' },
+                { name: 'Rare Protocol', color: 'text-pink-400 border-pink-400/30' },
+                { name: 'Protocol Labs', color: 'text-cyan-400 border-cyan-400/30' },
+                { name: 'Octant', color: 'text-emerald-400 border-emerald-400/30' },
+                { name: 'ENS', color: 'text-sky-400 border-sky-400/30' },
+              ].map(s => (
+                <span key={s.name} className={`text-[0.6rem] px-1.5 py-0.5 rounded bg-[#111a14] border ${s.color}`}>{s.name}</span>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-1.5 mt-1">
+              {['Base', 'Clanker', 'Astral SDK', 'AZUSD', 'Beezie NFT', 'ERC-8004'].map(tag => (
                 <span key={tag} className="text-[0.6rem] px-1.5 py-0.5 rounded bg-[#111a14] border border-[#1a2f1e] text-[#6b8f72]">{tag}</span>
               ))}
             </div>

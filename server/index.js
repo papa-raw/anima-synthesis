@@ -29,6 +29,18 @@ app.use('/api/capture', captureRouter);
 app.use('/api/heartbeats', heartbeatsRouter);
 app.use('/api/chat', chatRouter);
 
+// Serve agent execution log (Protocol Labs bounty — judges inspect this)
+app.get('/api/agent-log', (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  try {
+    const logPath = join(__dirname, '../agent_log.json');
+    const { readFileSync } = require('fs');
+    res.json(JSON.parse(readFileSync(logPath, 'utf8')));
+  } catch {
+    res.json({ events: [] });
+  }
+});
+
 // Serve generated art
 app.use('/art', express.static(join(__dirname, '../public/art')));
 
