@@ -74,7 +74,18 @@ export default function App() {
               beezieTokenId: apiAgent.beezie_token_id || staticAgent.beezieTokenId,
             };
           });
-          setAgents(merged);
+          // Also include static agents not in API (Ponyta/Magnemite if not seeded on server)
+          const mergedIds = new Set(merged.map(a => a.id));
+          const remaining = AGENTS.filter(a => !mergedIds.has(a.id));
+          const allAgents = [...merged, ...remaining];
+
+          setAgents(allAgents);
+
+          // Update selectedAgent if it was refreshed with new data
+          setSelectedAgent(prev => {
+            if (!prev) return null;
+            return allAgents.find(a => a.id === prev.id) || prev;
+          });
         }
       } catch (e) {
         // Server not running — use static data
