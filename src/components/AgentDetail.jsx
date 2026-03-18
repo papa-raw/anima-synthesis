@@ -43,7 +43,8 @@ function Requirement({ met, text }) {
 export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchingCard, walletAddress }) {
   const [tab, setTab] = useState('info');
   const [azusdBalance, setTgnBalance] = useState(null);
-  const [chatMessages, setChatMessages] = useState(null); // persists across tab switches
+  const [chatMessages, setChatMessages] = useState(null);
+  const [memoryForming, setMemoryForming] = useState(false); // shared between Soul + Art tabs
 
   useEffect(() => {
     if (!walletAddress) { setTgnBalance(null); return; }
@@ -214,7 +215,7 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
           )}
 
           {tab === 'gallery' && (
-            <MemoryGallery agentId={agent.id} agentColor={agent.color} />
+            <MemoryGallery agentId={agent.id} agentColor={agent.color} artGenerating={memoryForming} />
           )}
 
           {tab === 'card' && (
@@ -242,7 +243,7 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
           )}
 
           {tab === 'soul' && (
-            <SoulChat agent={agent} walletAddress={walletAddress} messages={chatMessages} onMessagesChange={setChatMessages} />
+            <SoulChat agent={agent} walletAddress={walletAddress} messages={chatMessages} onMessagesChange={setChatMessages} onMemoryForming={setMemoryForming} />
           )}
         </div>
 
@@ -351,11 +352,11 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
   );
 }
 
-function SoulChat({ agent, walletAddress, messages: savedMessages, onMessagesChange }) {
+function SoulChat({ agent, walletAddress, messages: savedMessages, onMessagesChange, onMemoryForming }) {
   const [messages, setMessages] = useState(savedMessages || []);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [memoryForming, setMemoryForming] = useState(false);
+  const [memoryStatus, setMemoryStatus] = useState(false);
   const scrollRef = useRef(null);
   const elementType = ELEMENT_TYPES[agent.element] || ELEMENT_TYPES.normal;
 
@@ -394,9 +395,10 @@ function SoulChat({ agent, walletAddress, messages: savedMessages, onMessagesCha
       const data = await res.json();
       setMessages(m => [...m, { role: 'agent', text: data.response || `*${agent.pokemon} stares at you silently*` }]);
       // Show memory distillation indicator — lingers then updates
-      setMemoryForming('forming');
-      setTimeout(() => setMemoryForming('formed'), 4000);
-      setTimeout(() => setMemoryForming(false), 8000);
+      setMemoryStatus('forming');
+      onMemoryForming?.('forming');
+      setTimeout(() => { setMemoryStatus('formed'); onMemoryForming?.('formed'); }, 4000);
+      setTimeout(() => { setMemoryStatus(false); onMemoryForming?.(false); }, 8000);
     } catch (e) {
       setMessages(m => [...m, { role: 'agent', text: `*${agent.pokemon} stares at you silently*` }]);
     }
@@ -430,9 +432,9 @@ function SoulChat({ agent, walletAddress, messages: savedMessages, onMessagesCha
               </div>
             </div>
           )}
-          {memoryForming && (
+          {memoryStatus && (
             <div className="flex justify-start pl-2">
-              {memoryForming === 'forming' ? (
+              {memoryStatus === 'forming' ? (
                 <span className="text-xs italic text-[#6b8f72] opacity-60 animate-pulse">memory forming...</span>
               ) : (
                 <span className="text-xs italic text-emerald-400/70">memory formed — check Art tab</span>
@@ -475,7 +477,7 @@ function getGreeting(agent) {
   return greetings[agent.element] || `*${agent.pokemon} regards you curiously from the ${agent.bioregionName}*`;
 }
 
-function MemoryGallery({ agentId, agentColor }) {
+function MemoryGallery({ agentId, agentColor, artGenerating }) {
   const [memories, setMemories] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -501,9 +503,31 @@ function MemoryGallery({ agentId, agentColor }) {
     );
   }
 
+  // Auto-refresh when art is being generated
+  useEffect(() => {
+    if (artGenerating === 'formed') {
+      // Refetch memories after art is generated
+      const timer = setTimeout(() => {
+        fetch(`/api/agents/${agentId}/memories?_=${Date.now()}`, { cache: 'no-store' })
+          .then(r => r.json())
+          .then(data => setMemories(data.filter(m => m.art_url)))
+          .catch(() => {});
+      }, 5000); // Wait 5s for Venice to finish generating
+      return () => clearTimeout(timer);
+    }
+  }, [artGenerating]);
+
   return (
     <div className="p-3">
       <div className="grid grid-cols-2 gap-2">
+        {artGenerating === 'forming' && (
+          <div className="aspect-square rounded-lg border border-[#1a2f1e] bg-[#111a14] flex items-center justify-center">
+            <div className="text-center">
+              <div className="w-8 h-8 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin mx-auto mb-2" />
+              <span className="text-xs text-[#6b8f72]">creating art...</span>
+            </div>
+          </div>
+        )}
         {memories.map(m => (
           <div key={m.id} className="group relative">
             <img
