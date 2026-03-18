@@ -110,20 +110,22 @@ export async function generateMemoryArt(agent, memory) {
 }
 
 /**
- * Build an art prompt from agent identity + memory content
+ * Build an art prompt from the agent's POV — what it sees, feels, remembers.
+ * Never mention Pokemon names (triggers copyright filters on image models).
  */
 function buildArtPrompt(agent, memory) {
-  const elementStyles = {
-    fighting: 'warm earth tones, desert landscape, golden light, ancient ruins',
-    fire: 'blazing orange, dynamic motion, urban fire, neon reflections on wet streets',
-    electric: 'electric blue, magnetic fields, Japanese forest, torii gates, lightning',
-    water: 'deep ocean blue, coral reef, bioluminescence, flowing water',
-    nature: 'lush green, dense forest canopy, morning mist, moss and ferns',
-    psychic: 'purple nebula, crystalline structures, aurora borealis, ethereal glow',
-    normal: 'soft neutral tones, gentle light, peaceful meadow'
+  const elementMoods = {
+    fighting: 'warm earth tones, golden hour light, dry grass, ancient stone, dust motes in sunlight',
+    fire: 'blazing sunset, heat shimmer, embers floating, neon reflections on wet asphalt at night',
+    electric: 'crackling blue light, magnetic aurora, forest shrine, paper lanterns, static electricity',
+    water: 'deep ocean light filtering down, coral colors, bioluminescent glow, rain on still water',
+    nature: 'dappled green canopy light, morning mist between trees, moss on stone, fern unfurling',
+    psychic: 'purple twilight, crystalline reflections, northern lights, ethereal fog',
+    normal: 'soft golden meadow, gentle breeze, wildflowers, afternoon light'
   };
 
-  const style = elementStyles[agent.element] || elementStyles.normal;
+  const mood = elementMoods[agent.element] || elementMoods.normal;
+  const bioregion = agent.bioregion_name || agent.bioregionName || 'a wild landscape';
 
-  return `A dreamlike illustration of ${agent.pokemon} in ${agent.bioregion_name || agent.bioregionName || 'a wild bioregion'}. The memory: "${memory}". Style: ${style}. Digital art, painterly, atmospheric, no text, no watermark.`;
+  return `First-person view from a small wild creature looking out at ${bioregion}. The feeling: ${memory}. Mood: ${mood}. Digital painting, atmospheric, dreamy, no text, no characters visible, landscape perspective, painterly.`;
 }
