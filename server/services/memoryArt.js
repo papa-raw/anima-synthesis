@@ -91,7 +91,7 @@ export async function generateMemoryArt(agent, memory) {
 
     const imageUrl = ipfsCid
       ? `https://w3s.link/ipfs/${ipfsCid}`
-      : imageData.url || null;
+      : null;
 
     console.log(`[${agent.id}] Memory art generated: ${artPrompt.slice(0, 60)}... → ${ipfsCid || 'no IPFS'}`);
 
