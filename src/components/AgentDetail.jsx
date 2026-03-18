@@ -134,7 +134,13 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
               <div className="grid grid-cols-2 gap-3 mb-4">
                 <MetricCard label="TREASURY" value={`${(agent.ethBalance || 0).toFixed(4)} ETH`} subtitle={`~$${usdValue}`} />
                 <MetricCard label={runway.label} value={runway.value} variant={`${runway.variant} ${runway.animate ? 'animate-pulse' : ''}`} />
-                <MetricCard label="TOKEN" value={agent.tokenSymbol || '--'} />
+                {agent.token_address ? (
+                  <a href={`https://app.uniswap.org/swap?outputCurrency=${agent.token_address}&chain=base`} target="_blank" rel="noopener noreferrer" className="block">
+                    <MetricCard label="TOKEN" value={agent.tokenSymbol || '--'} subtitle="Buy on Uniswap ↗" />
+                  </a>
+                ) : (
+                  <MetricCard label="TOKEN" value={agent.tokenSymbol || '--'} />
+                )}
                 <MetricCard label="HOLDERS" value={agent.holderCount || '--'} />
                 <MetricCard label="DAILY COST" value={`$${agent.dailyCostUsd || 0.50}`} />
                 <MetricCard label="EARNED" value={`${(agent.wethEarnedTotal || 0).toFixed(4)}`} subtitle="WETH total" />
