@@ -45,7 +45,7 @@ const POLL_INTERVAL = 30000; // 30s
 
 export default function App() {
   const [agents, setAgents] = useState(AGENTS); // Start with static data
-  const [selectedAgent, setSelectedAgent] = useState(null);
+  const [selectedAgentId, setSelectedAgentId] = useState(null);
   const [captureMode, setCaptureMode] = useState(false);
   const [walletAddress, setWalletAddress] = useState(null);
   const [walletHasMatchingCard, setWalletHasMatchingCard] = useState(false);
@@ -80,12 +80,6 @@ export default function App() {
           const allAgents = [...merged, ...remaining];
 
           setAgents(allAgents);
-
-          // Update selectedAgent if it was refreshed with new data
-          setSelectedAgent(prev => {
-            if (!prev) return null;
-            return allAgents.find(a => a.id === prev.id) || prev;
-          });
         }
       } catch (e) {
         // Server not running — use static data
@@ -96,6 +90,9 @@ export default function App() {
     const interval = setInterval(fetchAgents, POLL_INTERVAL);
     return () => clearInterval(interval);
   }, []);
+
+  // Derive selectedAgent from agents list — always fresh after poll
+  const selectedAgent = selectedAgentId ? agents.find(a => a.id === selectedAgentId) || null : null;
 
   // Initialize Astral SDK when wallet connects
   useEffect(() => {
@@ -119,7 +116,7 @@ export default function App() {
   }, [walletAddress, selectedAgent]);
 
   const handleAgentSelect = useCallback((agent) => {
-    setSelectedAgent(agent);
+    setSelectedAgentId(agent?.id || null);
     setCaptureMode(false);
   }, []);
 
@@ -129,7 +126,7 @@ export default function App() {
 
   const handleCaptureSuccess = useCallback((result) => {
     setCaptureMode(false);
-    setSelectedAgent(null);
+    setSelectedAgentId(null);
     // Refresh agents to get updated status
     getAgents().then(data => { if (data?.length) setAgents(data); }).catch(() => {});
   }, []);
@@ -139,7 +136,7 @@ export default function App() {
   }, []);
 
   const handleCloseDetail = useCallback(() => {
-    setSelectedAgent(null);
+    setSelectedAgentId(null);
     setCaptureMode(false);
   }, []);
 
