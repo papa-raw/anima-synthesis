@@ -12,7 +12,8 @@
 import { pinToIpfs } from './ipfsService.js';
 
 const VENICE_API_KEY = process.env.VENICE_API_KEY;
-const VENICE_IMAGE_URL = 'https://api.venice.ai/api/v1/images/generations';
+// Venice supports both endpoints — try official first, fall back to OpenAI-compat
+const VENICE_IMAGE_URL = 'https://api.venice.ai/api/v1/image/generate';
 
 /**
  * Generate art from a memory using Venice Flux
@@ -25,10 +26,9 @@ export async function generateMemoryArt(agent, memory) {
   }
 
   try {
-    // Build a prompt from the agent's identity + memory
     const artPrompt = buildArtPrompt(agent, memory);
 
-    // Generate image via Venice Flux
+    // Generate image via Venice Flux (official endpoint)
     const res = await fetch(VENICE_IMAGE_URL, {
       method: 'POST',
       headers: {
@@ -38,9 +38,11 @@ export async function generateMemoryArt(agent, memory) {
       body: JSON.stringify({
         model: 'fluently-xl',
         prompt: artPrompt,
-        n: 1,
         width: 1024,
-        height: 1024
+        height: 1024,
+        format: 'png',
+        steps: 8,
+        hide_watermark: true
       })
     });
 
@@ -51,17 +53,19 @@ export async function generateMemoryArt(agent, memory) {
     }
 
     const data = await res.json();
-    const imageData = data.data?.[0];
-    if (!imageData) return null;
 
-    // Get the image (b64 or URL depending on Venice response format)
+    // Venice official format: { images: ["base64..."] }
+    // OpenAI-compat format: { data: [{ b64_json }] }
     let imageBuffer;
-    if (imageData.b64_json) {
-      imageBuffer = Buffer.from(imageData.b64_json, 'base64');
-    } else if (imageData.url) {
-      const imgRes = await fetch(imageData.url);
+    if (data.images?.[0]) {
+      imageBuffer = Buffer.from(data.images[0], 'base64');
+    } else if (data.data?.[0]?.b64_json) {
+      imageBuffer = Buffer.from(data.data[0].b64_json, 'base64');
+    } else if (data.data?.[0]?.url) {
+      const imgRes = await fetch(data.data[0].url);
       imageBuffer = Buffer.from(await imgRes.arrayBuffer());
     } else {
+      console.error('Venice: unexpected response format', Object.keys(data));
       return null;
     }
 
