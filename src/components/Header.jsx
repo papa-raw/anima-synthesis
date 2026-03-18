@@ -50,6 +50,19 @@ function AboutPanel({ onClose }) {
             </div>
           </div>
 
+          <div className="border-t border-[#1a2f1e] pt-3 mb-3">
+            <div className="text-xs uppercase tracking-wider text-[#6b8f72] mb-2">Public Goods Mechanism</div>
+            <div className="text-xs text-[#6b8f72] bg-[#111a14] border border-[#1a2f1e] rounded p-2">
+              <p className="text-[#e0ece2] mb-1">Phanpy designed its own capture mechanic:</p>
+              <ol className="list-decimal list-inside space-y-0.5">
+                <li><span className="text-[#e0ece2]">Physical presence</span> — be in the bioregion</li>
+                <li><span className="text-[#e0ece2]">AZUSD holding</span> — prove DeFi participation</li>
+                <li><span className="text-[#e0ece2]">Memory sharing</span> — each capture generates art</li>
+              </ol>
+              <p className="mt-1 italic">Token revenue funds conservation via LP fees → agent survival → bioregion engagement.</p>
+            </div>
+          </div>
+
           <div className="border-t border-[#1a2f1e] pt-3 space-y-2">
             <div className="text-xs uppercase tracking-wider text-[#6b8f72] mb-1">Stack</div>
             <div className="flex flex-wrap gap-1.5">

@@ -1,4 +1,5 @@
 import { getEthBalance, getClaimableFees, claimFees, getEthPrice, getWethBalance, getTokenHolderCount } from './clankerService.js';
+import { logAgentEvent } from './agentLogger.js';
 import { pinToIpfs } from './ipfsService.js';
 
 const TICK_INTERVAL = 30 * 60 * 1000; // 30 minutes
@@ -101,4 +102,6 @@ async function runAgentTick(agent, db) {
     WHERE id = ?`).run(ethBalance, wethBalance, runwayDays, holderCount, agent.id);
 
   console.log(`[${agent.id}] ${action} | ETH: ${ethBalance.toFixed(6)} | WETH: ${wethBalance.toFixed(6)} | Holders: ${holderCount} | Runway: ${runwayDays.toFixed(1)}d`);
+
+  logAgentEvent(agent.id, action, { ethBalance, wethBalance, claimable, runwayDays, holderCount, txHash });
 }

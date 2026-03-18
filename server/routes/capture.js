@@ -4,6 +4,7 @@ import { transferNftToCatcher } from '../services/nftTransfer.js';
 import { verifyBioregion } from '../services/bioregionVerify.js';
 import { verifyAzusdHolding, verifyBeezieHolding } from '../services/onchainVerify.js';
 import { generateMemoryArt } from '../services/memoryArt.js';
+import { logAgentEvent } from '../services/agentLogger.js';
 
 const router = Router();
 
@@ -74,6 +75,8 @@ router.post('/', async (req, res) => {
   db.prepare(`UPDATE agents SET status = 'captured', captured_by = ?, captured_at = datetime('now'), nft_tx_hash = ? WHERE id = ?`)
     .run(catcherWallet, nftTxHash, agentId);
 
+  logAgentEvent(agentId, 'capture', { catcherWallet, bioregion: agent.bioregion_id, nftTxHash, astralProofHash });
+
   const updated = db.prepare('SELECT * FROM agents WHERE id = ?').get(agentId);
   res.json({ captured: true, agent: updated, nftTxHash });
 });
@@ -125,6 +128,8 @@ router.post('/release', async (req, res) => {
         .run(art.imageUrl, art.ipfsCid, art.prompt, memResult.lastInsertRowid);
     }
   }).catch(() => {});
+
+  logAgentEvent(agentId, 'release', { releaserWallet, newBioregion: releaseBioregion, nftTxHash });
 
   const updated = db.prepare('SELECT * FROM agents WHERE id = ?').get(agentId);
   res.json({ released: true, agent: updated, nftTxHash, memory: releaseMemory });

@@ -125,8 +125,8 @@ Rules:
       if (agent) {
         generateMemoryArt(agent, cleaned).then(art => {
           if (art) {
-            db.prepare('UPDATE agent_memories SET art_url = ?, art_ipfs_cid = ?, art_prompt = ? WHERE id = ?')
-              .run(art.imageUrl, art.ipfsCid, art.prompt, result.lastInsertRowid);
+            db.prepare('UPDATE agent_memories SET art_url = ?, art_ipfs_cid = ?, art_prompt = ?, nft_token_id = ?, nft_contract = ? WHERE id = ?')
+              .run(art.imageUrl, art.ipfsCid, art.prompt, art.nftTokenId, art.nftContract, result.lastInsertRowid);
           }
         }).catch(() => {});
       }

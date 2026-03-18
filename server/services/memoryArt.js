@@ -88,18 +88,31 @@ export async function generateMemoryArt(agent, memory) {
 
     console.log(`[${agent.id}] Art saved: ${filename} (${imageBuffer.length} bytes)`);
 
-    const ipfsCid = null;
     const localPath = `${process.env.API_URL || 'https://api.anima.cards'}/art/${filename}`;
 
-    const imageUrl = ipfsCid
-      ? `https://w3s.link/ipfs/${ipfsCid}`
-      : localPath;
+    // Mint as NFT via Rare Protocol CLI (SuperRare bounty)
+    let nftTokenId = null;
+    const RARE_CONTRACT = process.env.RARE_NFT_CONTRACT || '0x59FbA43625eF81460930a8770Ee9c69042311c1a';
+    try {
+      const { execSync } = await import('child_process');
+      const mintResult = execSync(
+        `rare mint --contract ${RARE_CONTRACT} --name "${memory.slice(0, 60).replace(/"/g, "'")}" --description "Memory art by ${agent.pokemon || agent.id}. ${artPrompt.slice(0, 100).replace(/"/g, "'")}" --image ${fullPath} --chain base`,
+        { timeout: 60000, encoding: 'utf8' }
+      );
+      console.log(`[${agent.id}] NFT minted:`, mintResult.trim());
+      const tokenMatch = mintResult.match(/token[- _]?[iI][dD][\s:]*(\d+)/i);
+      if (tokenMatch) nftTokenId = tokenMatch[1];
+    } catch (e) {
+      console.warn(`[${agent.id}] Rare CLI mint failed (art still saved):`, e.message?.slice(0, 100));
+    }
 
-    console.log(`[${agent.id}] Memory art generated: ${artPrompt.slice(0, 60)}... → ${ipfsCid || 'no IPFS'}`);
+    console.log(`[${agent.id}] Memory art generated: ${artPrompt.slice(0, 60)}... → ${nftTokenId ? 'NFT #' + nftTokenId : 'no mint'}`);
 
     return {
-      imageUrl,
-      ipfsCid,
+      imageUrl: localPath,
+      ipfsCid: null,
+      nftTokenId,
+      nftContract: nftTokenId ? RARE_CONTRACT : null,
       prompt: artPrompt,
       model: 'flux-2-max'
     };
