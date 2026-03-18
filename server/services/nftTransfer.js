@@ -9,13 +9,17 @@ import { privateKeyToAccount } from 'viem/accounts';
 
 const BEEZIE_CONTRACT = '0xbb5ec6fd4b61723bd45c399840f1d868840ca16f';
 
-const AGENT_KEYS = {
-  'agent-phanpy': process.env.AGENT_PHANPY_PRIVATE_KEY,
-  'agent-2': process.env.AGENT_2_PRIVATE_KEY,
-  'agent-ponyta': process.env.AGENT_2_PRIVATE_KEY,
-  'agent-3': process.env.AGENT_3_PRIVATE_KEY,
-  'agent-magnemite': process.env.AGENT_3_PRIVATE_KEY,
-};
+function getAgentKey(agentId) {
+  const keyMap = {
+    'agent-phanpy': 'AGENT_PHANPY_PRIVATE_KEY',
+    'agent-2': 'AGENT_2_PRIVATE_KEY',
+    'agent-ponyta': 'AGENT_2_PRIVATE_KEY',
+    'agent-3': 'AGENT_3_PRIVATE_KEY',
+    'agent-magnemite': 'AGENT_3_PRIVATE_KEY',
+  };
+  const envName = keyMap[agentId];
+  return envName ? process.env[envName] : null;
+}
 
 const ERC721_ABI = [
   {
@@ -40,7 +44,7 @@ const publicClient = createPublicClient({
  * Transfer Beezie NFT from agent wallet to catcher on successful capture
  */
 export async function transferNftToCatcher(agentId, catcherAddress, beezieTokenId) {
-  const key = AGENT_KEYS[agentId];
+  const key = getAgentKey(agentId);
   if (!key) throw new Error(`No private key for ${agentId}. Set env var.`);
 
   const account = privateKeyToAccount(key);

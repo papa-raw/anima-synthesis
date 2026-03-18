@@ -6,15 +6,21 @@ import { privateKeyToAccount } from 'viem/accounts';
 const RPC = process.env.BASE_RPC_URL || 'https://mainnet.base.org';
 const publicClient = createPublicClient({ chain: base, transport: http(RPC) });
 
-// Load agent private keys from env (NEVER from DB)
-const AGENT_KEYS = {
-  'agent-phanpy': process.env.AGENT_PHANPY_PRIVATE_KEY,
-  'agent-2': process.env.AGENT_2_PRIVATE_KEY,
-  'agent-3': process.env.AGENT_3_PRIVATE_KEY,
-};
+// Load agent private keys from env lazily (NEVER from DB)
+function getAgentKey(agentId) {
+  const keyMap = {
+    'agent-phanpy': 'AGENT_PHANPY_PRIVATE_KEY',
+    'agent-2': 'AGENT_2_PRIVATE_KEY',
+    'agent-ponyta': 'AGENT_2_PRIVATE_KEY',
+    'agent-3': 'AGENT_3_PRIVATE_KEY',
+    'agent-magnemite': 'AGENT_3_PRIVATE_KEY',
+  };
+  const envName = keyMap[agentId];
+  return envName ? process.env[envName] : null;
+}
 
 function getClankerForAgent(agentId) {
-  const key = AGENT_KEYS[agentId];
+  const key = getAgentKey(agentId);
   if (!key) throw new Error(`No private key for ${agentId}. Set ${agentId.toUpperCase().replace(/-/g, '_')}_PRIVATE_KEY in .env`);
   const account = privateKeyToAccount(key);
   const wallet = createWalletClient({ account, chain: base, transport: http(RPC) });

@@ -11,7 +11,8 @@
 
 import { pinToIpfs } from './ipfsService.js';
 
-const VENICE_API_KEY = process.env.VENICE_API_KEY;
+// Read lazily — module loads before dotenv in PM2
+function getVeniceKey() { return process.env.VENICE_API_KEY; }
 // Venice supports both endpoints — try official first, fall back to OpenAI-compat
 const VENICE_IMAGE_URL = 'https://api.venice.ai/api/v1/image/generate';
 
@@ -20,6 +21,7 @@ const VENICE_IMAGE_URL = 'https://api.venice.ai/api/v1/image/generate';
  * Returns { imageUrl, ipfsCid, prompt } or null on failure
  */
 export async function generateMemoryArt(agent, memory) {
+  const VENICE_API_KEY = getVeniceKey();
   if (!VENICE_API_KEY) {
     console.warn('No VENICE_API_KEY — skipping memory art');
     return null;
