@@ -20,6 +20,7 @@
     "@decentralized-geo/astral-sdk": "latest",
     "@phosphor-icons/react": "^2.1.10",
     "better-sqlite3": "^11.0.0",
+    "canvas": "^3.2.1",
     "clanker-sdk": "^4.2.14",
     "cors": "^2.8.5",
     "ethers": "^6.0.0",

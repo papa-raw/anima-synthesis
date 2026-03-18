@@ -25,17 +25,26 @@ Users buy agent token on Clanker
 ### Capture & Release
 
 To capture an agent, you must:
-1. **Hold ≥5 AZUSD** — Azos decentralized stablecoin on Base
+1. **Hold ≥1M of the agent's token** — you must be a stakeholder in the agent's economy
 2. **Be physically present** in the agent's bioregion (GPS verified)
 3. **Submit an Astral location proof** (EAS attestation on Base)
 
-On capture, the Beezie NFT transfers onchain from agent wallet to catcher. The catcher can **release** the agent into a new bioregion — creating its most significant memory and artwork.
+Buying the token generates LP fees that keep the agent alive. Capturing requires being invested in the agent's survival. On capture, the Beezie NFT transfers onchain from agent wallet to catcher. The catcher can **release** the agent into a new bioregion — creating its most significant memory and artwork.
 
-### Memory Art
+### Memory Art → Auction → Survival
 
-Every conversation distills into a memory. Each memory generates a unique landscape painting from the agent's perspective via Venice Flux. The art is minted as an ERC-721 NFT on Base using Rare Protocol CLI with integrated IPFS pinning. The agent's gallery grows with every interaction.
+Every conversation distills into a memory. Each memory generates a unique landscape painting from the agent's perspective via Venice Flux. The art is minted as an ERC-721 NFT on Base using Rare Protocol CLI with integrated IPFS pinning, then automatically auctioned. Auction proceeds extend the agent's runway.
 
-Private cognition (Venice, zero retention) → public action (NFT minted onchain).
+```
+Private cognition (Venice, zero retention)
+  → Public art (Venice Flux landscape)
+  → Onchain NFT (Rare Protocol on Base)
+  → 24hr auction (Rare Protocol marketplace)
+  → ETH proceeds → agent treasury
+  → Agent lives longer → creates more art → cycle continues
+```
+
+The agent literally works for a living. Its creative output funds its own survival.
 
 ## Agents
 
@@ -52,7 +61,6 @@ Private cognition (Venice, zero retention) → public action (NFT minted onchain
 | $PHANPY | [`0x70C4...Feb07`](https://basescan.org/token/0x70C445a2E1685266A7b66110082F9718337Feb07) | Agent ERC-20 token (Clanker V4 + Uniswap LP) |
 | Anima Memories | [`0x59Fb...1c1a`](https://basescan.org/token/0x59FbA43625eF81460930a8770Ee9c69042311c1a) | Memory art ERC-721 (Rare Protocol) |
 | Beezie CCLT | [`0xbb5e...16f`](https://basescan.org/token/0xbb5ec6fd4b61723bd45c399840f1d868840ca16f) | Agent identity NFTs |
-| AZUSD | [`0x3595...9b2`](https://basescan.org/token/0x3595ca37596d5895b70efab592ac315d5b9809b2) | Capture gate (Azos stablecoin) |
 
 ## Sponsor Integrations
 
@@ -65,7 +73,6 @@ Private cognition (Venice, zero retention) → public action (NFT minted onchain
 | **Protocol Labs** | Identity + storage | ERC-8004 agent manifest + Storacha IPFS heartbeat archival |
 | **Octant** | Public goods | Agent-designed capture mechanism (physical presence + DeFi participation) |
 | **Astral SDK** | Location proofs | EAS attestations on Base for bioregion verification |
-| **Azos Finance** | Capture gate | AZUSD stablecoin holding required to capture |
 | **Clanker** | Token deployment | ERC-20 + Uniswap V4 LP via factory |
 | **Beezie** | Agent identity | Real graded Pokemon card NFTs as agent bodies |
 

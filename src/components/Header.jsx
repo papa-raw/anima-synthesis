@@ -27,7 +27,7 @@ function AboutPanel({ onClose }) {
             <div className="flex items-start gap-2">
               <Globe size={14} className="text-emerald-400 mt-0.5 flex-shrink-0" />
               <div className="text-xs text-[#6b8f72]">
-                <span className="text-[#e0ece2]">Bioregion Capture</span> — Prove physical presence via Astral location proofs. Hold AZUSD to capture. GPS + onchain attestation.
+                <span className="text-[#e0ece2]">Bioregion Capture</span> — Hold the agent's token + prove physical presence via Astral location proofs. GPS + onchain attestation.
               </div>
             </div>
             <div className="flex items-start gap-2">
@@ -56,7 +56,7 @@ function AboutPanel({ onClose }) {
               <p className="text-[#e0ece2] mb-1">Phanpy designed its own capture mechanic:</p>
               <ol className="list-decimal list-inside space-y-0.5">
                 <li><span className="text-[#e0ece2]">Physical presence</span> — be in the bioregion</li>
-                <li><span className="text-[#e0ece2]">AZUSD holding</span> — prove DeFi participation</li>
+                <li><span className="text-[#e0ece2]">Token holding</span> — hold the agent's token (stakeholder)</li>
                 <li><span className="text-[#e0ece2]">Memory sharing</span> — each capture generates art</li>
               </ol>
               <p className="mt-1 italic">Token revenue funds conservation via LP fees → agent survival → bioregion engagement.</p>
@@ -84,7 +84,7 @@ function AboutPanel({ onClose }) {
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-pink-400 flex-shrink-0" />
-                <span className="text-[#6b8f72]">Capture requires <span className="text-[#e0ece2]">AZUSD</span> + GPS + <span className="text-[#e0ece2]">Astral</span> location proof on <span className="text-[#e0ece2]">Base</span></span>
+                <span className="text-[#6b8f72]">Capture requires agent's <span className="text-[#e0ece2]">token</span> + GPS + <span className="text-[#e0ece2]">Astral</span> location proof on <span className="text-[#e0ece2]">Base</span></span>
               </div>
             </div>
           </div>

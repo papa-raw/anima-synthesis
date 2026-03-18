@@ -106,7 +106,23 @@ export async function generateMemoryArt(agent, memory) {
       console.warn(`[${agent.id}] Rare CLI mint failed (art still saved):`, e.message?.slice(0, 100));
     }
 
-    console.log(`[${agent.id}] Memory art generated: ${artPrompt.slice(0, 60)}... → ${nftTokenId ? 'NFT #' + nftTokenId : 'no mint'}`);
+    // Auto-auction via Rare Protocol (SuperRare bounty — agent sells its own art)
+    let auctionId = null;
+    if (nftTokenId) {
+      try {
+        const { execSync } = await import('child_process');
+        const auctionResult = execSync(
+          `rare auction create --contract ${RARE_CONTRACT} --token-id ${nftTokenId} --starting-price 0.0001 --duration 86400 --chain base`,
+          { timeout: 60000, encoding: 'utf8' }
+        );
+        console.log(`[${agent.id}] Auction created for NFT #${nftTokenId}:`, auctionResult.trim());
+        auctionId = nftTokenId; // auction is keyed by token ID
+      } catch (e) {
+        console.warn(`[${agent.id}] Auction creation failed:`, e.message?.slice(0, 100));
+      }
+    }
+
+    console.log(`[${agent.id}] Memory art generated: ${artPrompt.slice(0, 60)}... → ${nftTokenId ? 'NFT #' + nftTokenId : 'no mint'}${auctionId ? ' (auctioned)' : ''}`);
 
     return {
       imageUrl: localPath,

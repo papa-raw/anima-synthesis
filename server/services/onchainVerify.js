@@ -1,15 +1,12 @@
 /**
  * Server-side onchain verification for capture requirements.
- * Checks AZUSD balance and Beezie NFT ownership on Base.
+ * Checks agent token holding and Beezie NFT ownership on Base.
  */
 
-import { createPublicClient, http, formatUnits, parseUnits } from 'viem';
+import { createPublicClient, http, formatUnits } from 'viem';
 import { base } from 'viem/chains';
 
-const AZUSD_CONTRACT = '0x3595ca37596d5895b70efab592ac315d5b9809b2';
-const AZUSD_DECIMALS = 18;
-const MIN_AZUSD_REQUIRED = 5;
-
+const MIN_TOKENS_REQUIRED = 1_000_000; // 1M tokens
 const BEEZIE_CONTRACT = '0xbb5ec6fd4b61723bd45c399840f1d868840ca16f';
 
 const publicClient = createPublicClient({
@@ -22,6 +19,13 @@ const ERC20_ABI = [
     inputs: [{ name: 'account', type: 'address' }],
     name: 'balanceOf',
     outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function'
+  },
+  {
+    inputs: [],
+    name: 'decimals',
+    outputs: [{ name: '', type: 'uint8' }],
     stateMutability: 'view',
     type: 'function'
   }
@@ -38,23 +42,20 @@ const ERC721_ABI = [
 ];
 
 /**
- * Verify wallet holds ≥5 AZUSD on Base
+ * Verify wallet holds ≥1M of the agent's own token
  */
-export async function verifyAzusdHolding(walletAddress) {
+export async function verifyTokenHolding(walletAddress, tokenAddress) {
+  if (!tokenAddress) return { valid: true, skipped: true, reason: 'No token deployed yet' };
+
   try {
-    const rawBalance = await publicClient.readContract({
-      address: AZUSD_CONTRACT,
-      abi: ERC20_ABI,
-      functionName: 'balanceOf',
-      args: [walletAddress]
-    });
-    const minRequired = parseUnits(String(MIN_AZUSD_REQUIRED), AZUSD_DECIMALS);
-    const holds = rawBalance >= minRequired;
-    const balance = formatUnits(rawBalance, AZUSD_DECIMALS);
-    return { valid: holds, balance, required: MIN_AZUSD_REQUIRED };
+    const [rawBalance, decimals] = await Promise.all([
+      publicClient.readContract({ address: tokenAddress, abi: ERC20_ABI, functionName: 'balanceOf', args: [walletAddress] }),
+      publicClient.readContract({ address: tokenAddress, abi: ERC20_ABI, functionName: 'decimals' })
+    ]);
+    const balance = parseFloat(formatUnits(rawBalance, decimals));
+    return { valid: balance >= MIN_TOKENS_REQUIRED, balance, required: MIN_TOKENS_REQUIRED };
   } catch (e) {
-    console.error('AZUSD verification failed:', e.message);
-    // Fail open for hackathon — log but don't block
+    console.error('Token verification failed:', e.message);
     return { valid: true, skipped: true, error: e.message };
   }
 }

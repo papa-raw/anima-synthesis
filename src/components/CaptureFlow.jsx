@@ -3,7 +3,7 @@ import StatusPill from './StatusPill.jsx';
 import { getMatchingCard } from '../services/beezieService.js';
 import { getCurrentPosition, createLocationProof, formatCoordinates } from '../services/astralService.js';
 import { findBioregionAtCoordinate } from '../services/bioregionService.js';
-import { checkAzusdBalance, AZUSD_INFO } from '../services/conservationService.js';
+import { checkTokenGate, TOKEN_GATE_INFO } from '../services/conservationService.js';
 import { submitCapture } from '../services/agentApi.js';
 
 function CaptureStep({ num, label, state, children }) {
@@ -37,14 +37,14 @@ function CaptureStep({ num, label, state, children }) {
 }
 
 export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel, demoMode }) {
-  // Demo mode only bypasses wallet checks (NFT + AZUSD). GPS, bioregion, and Astral proofs are ALWAYS real.
-  const demoWallet = demoMode; // bypass NFT + AZUSD checks
+  // Demo mode only bypasses wallet checks (NFT + token gate). GPS, bioregion, and Astral proofs are ALWAYS real.
+  const demoWallet = demoMode; // bypass NFT + token gate checks
   const demoLocation = false;  // NEVER fake GPS — we want real proofs
   const [step, setStep] = useState(0); // 0-3 (4 steps)
   const [states, setStates] = useState({
     conservation: 'pending', gps: 'pending', bioregion: 'pending', proof: 'pending'
   });
-  const [azusdBalance, setTgnBalance] = useState(null);
+  const [tokenBalance, setTokenBalance] = useState(null);
   const [location, _setLocation] = useState(null);
   const locationRef = useRef(null);
   const setLocation = (loc) => { locationRef.current = loc; _setLocation(loc); };
@@ -59,7 +59,7 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
   async function executeStep(stepNum) {
     setError(null);
 
-    // Step 1: Conservation gate (AZUSD)
+    // Step 1: Token gate (agent's own token)
     if (stepNum === 0) {
       setStates(s => ({ ...s, conservation: 'checking' }));
       if (demoWallet) {
@@ -70,15 +70,15 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
         return;
       }
       try {
-        const result = await checkAzusdBalance(walletAddress);
+        const result = await checkTokenGate(walletAddress, agent.token_address, agent.tokenSymbol);
         if (result.holds) {
-          setTgnBalance(result.balance);
+          setTokenBalance(result.balance);
           setStates(s => ({ ...s, conservation: 'verified' }));
           setStep(1);
           setTimeout(() => executeStep(1), 500);
         } else {
           setStates(s => ({ ...s, conservation: 'failed' }));
-          setError(`Need ≥${AZUSD_INFO.required} AZUSD. Mint at app.azos.finance`);
+          setError(`Need ≥${TOKEN_GATE_INFO.requiredFormatted} ${agent.tokenSymbol || 'tokens'}. Buy on Clanker.`);
         }
       } catch (e) {
         setStates(s => ({ ...s, conservation: 'failed' }));
@@ -174,18 +174,20 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
             {states.conservation === 'checking' && (
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#22c55e', borderTopColor: 'transparent' }} />
-                <span className="text-[#6b8f72] text-sm">Checking AZUSD balance...</span>
+                <span className="text-[#6b8f72] text-sm">Checking {agent.tokenSymbol || 'token'} balance...</span>
               </div>
             )}
-            {states.conservation === 'verified' && azusdBalance && (
+            {states.conservation === 'verified' && tokenBalance && (
               <div className="text-emerald-400 text-sm font-medium">
-                Holding {parseFloat(azusdBalance).toFixed(2)} AZUSD — stable collateral verified
+                Holding {tokenBalance} {agent.tokenSymbol} — stakeholder verified
               </div>
             )}
             {states.conservation === 'failed' && (
               <div className="text-sm">
                 <span className="text-red-400">{error}</span>
-                <a href={AZUSD_INFO.buyUrl} target="_blank" rel="noreferrer" className="text-emerald-400 ml-2 hover:underline">Swap ETH → AZUSD on Hydrex</a>
+                {agent.token_address && (
+                  <a href={`${TOKEN_GATE_INFO.buyBaseUrl}${agent.token_address}`} target="_blank" rel="noreferrer" className="text-emerald-400 ml-2 hover:underline">Buy {agent.tokenSymbol} on Clanker</a>
+                )}
               </div>
             )}
           </CaptureStep>

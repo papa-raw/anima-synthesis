@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { getDb } from '../db/init.js';
 import { transferNftToCatcher } from '../services/nftTransfer.js';
 import { verifyBioregion } from '../services/bioregionVerify.js';
-import { verifyAzusdHolding, verifyBeezieHolding } from '../services/onchainVerify.js';
+import { verifyTokenHolding, verifyBeezieHolding } from '../services/onchainVerify.js';
 import { generateMemoryArt } from '../services/memoryArt.js';
 import { logAgentEvent } from '../services/agentLogger.js';
 
@@ -27,12 +27,12 @@ router.post('/', async (req, res) => {
   if (!agent) return res.status(404).json({ error: 'Agent not found' });
   if (agent.status !== 'wild') return res.status(400).json({ error: `Agent is ${agent.status}, not capturable` });
 
-  // 2. Server-side AZUSD verification (≥5 AZUSD required)
-  const azusdCheck = await verifyAzusdHolding(catcherWallet);
-  if (!azusdCheck.valid) {
+  // 2. Server-side token gate (≥1M of agent's own token required)
+  const tokenCheck = await verifyTokenHolding(catcherWallet, agent.token_address);
+  if (!tokenCheck.valid) {
     return res.status(403).json({
-      error: 'Insufficient AZUSD',
-      detail: `Wallet holds ${azusdCheck.balance} AZUSD, need ≥${azusdCheck.required}. Mint at app.azos.finance`
+      error: `Insufficient ${agent.token_symbol || 'agent tokens'}`,
+      detail: `Wallet holds ${tokenCheck.balance?.toLocaleString() || 0} tokens, need ≥${tokenCheck.required.toLocaleString()}. Buy on Clanker.`
     });
   }
 

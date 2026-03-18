@@ -1,16 +1,13 @@
 /**
- * Conservation Service — verify AZUSD (Azos Stablecoin) holdings on Base
- * Every capture requires holding ≥5 AZUSD, a decentralized stablecoin backed
- * by diversified collateral (cbBTC, cbETH, AERO, WELL, etc.) on Base.
- * Holding AZUSD supports Base DeFi infrastructure and stable collateral health.
+ * Token Gate Service — verify holder has agent's own token on Base
+ * To capture an agent, you must hold ≥1M of that agent's ERC-20 token.
+ * This creates a flywheel: buying tokens → LP fees → agent survives → creates art.
  */
 
-import { createPublicClient, http, formatUnits, parseUnits } from 'viem';
+import { createPublicClient, http, formatUnits } from 'viem';
 import { base } from 'viem/chains';
 
-const AZUSD_CONTRACT = '0x3595ca37596d5895b70efab592ac315d5b9809b2';
-const AZUSD_DECIMALS = 18;
-const MIN_AZUSD_REQUIRED = 5; // Must hold ≥5 AZUSD to capture
+const MIN_TOKENS_REQUIRED = 1_000_000; // 1M tokens (0.1% of 1B supply)
 
 const publicClient = createPublicClient({
   chain: base,
@@ -35,42 +32,48 @@ const ERC20_ABI = [
 ];
 
 /**
- * Check if wallet holds ≥5 AZUSD on Base
- * Returns { holds: boolean, balance: string, raw: bigint, required: number }
+ * Check if wallet holds ≥1M of the agent's token on Base
+ * @param {string} walletAddress
+ * @param {string} tokenAddress - the agent's ERC-20 token
+ * @param {string} tokenSymbol - for display
+ * Returns { holds: boolean, balance: string, required: number, tokenSymbol: string }
  */
-export async function checkAzusdBalance(walletAddress) {
-  try {
-    const rawBalance = await publicClient.readContract({
-      address: AZUSD_CONTRACT,
-      abi: ERC20_ABI,
-      functionName: 'balanceOf',
-      args: [walletAddress]
-    });
+export async function checkTokenGate(walletAddress, tokenAddress, tokenSymbol) {
+  if (!tokenAddress) {
+    return { holds: false, balance: '0', required: MIN_TOKENS_REQUIRED, tokenSymbol: tokenSymbol || '??', noToken: true };
+  }
 
-    const balance = formatUnits(rawBalance, AZUSD_DECIMALS);
-    const minRequired = parseUnits(String(MIN_AZUSD_REQUIRED), AZUSD_DECIMALS);
+  try {
+    const [rawBalance, decimals] = await Promise.all([
+      publicClient.readContract({
+        address: tokenAddress,
+        abi: ERC20_ABI,
+        functionName: 'balanceOf',
+        args: [walletAddress]
+      }),
+      publicClient.readContract({
+        address: tokenAddress,
+        abi: ERC20_ABI,
+        functionName: 'decimals'
+      })
+    ]);
+
+    const balance = formatUnits(rawBalance, decimals);
+    const balanceNum = parseFloat(balance);
     return {
-      holds: rawBalance >= minRequired,
-      balance,
-      raw: rawBalance.toString(),
-      required: MIN_AZUSD_REQUIRED
+      holds: balanceNum >= MIN_TOKENS_REQUIRED,
+      balance: balanceNum.toLocaleString(undefined, { maximumFractionDigits: 0 }),
+      required: MIN_TOKENS_REQUIRED,
+      tokenSymbol: tokenSymbol || '??'
     };
   } catch (e) {
-    console.error('AZUSD balance check failed:', e.message);
-    return { holds: false, balance: '0', raw: '0', required: MIN_AZUSD_REQUIRED };
+    console.error('Token gate check failed:', e.message);
+    return { holds: false, balance: '0', required: MIN_TOKENS_REQUIRED, tokenSymbol: tokenSymbol || '??' };
   }
 }
 
-export const AZUSD_INFO = {
-  name: 'Azos Stablecoin',
-  symbol: 'AZUSD',
-  contract: AZUSD_CONTRACT,
-  chain: 'base',
-  decimals: AZUSD_DECIMALS,
-  required: MIN_AZUSD_REQUIRED,
-  mintUrl: 'https://app.azos.finance/',
-  buyUrl: 'https://www.hydrex.fi/swap?tokenIn=ETH&tokenOut=0x3595ca37596d5895b70efab592ac315d5b9809b2',
-  docsUrl: 'https://docs.azos.finance/docs/intro/',
-  impact: 'Decentralized overcollateralized stablecoin on Base'
+export const TOKEN_GATE_INFO = {
+  required: MIN_TOKENS_REQUIRED,
+  requiredFormatted: '1M',
+  buyBaseUrl: 'https://clanker.world/clanker/'
 };
-

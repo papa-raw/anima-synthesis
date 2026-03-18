@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import StatusPill from './StatusPill.jsx';
 import { ELEMENT_TYPES } from '../data/types.js';
 import { Wallet, Timer, Coin, Users, Lightning, TreePalm, MapPin, ChatCircleDots, X, Info, Cards, ImageSquare } from '@phosphor-icons/react';
-import { checkAzusdBalance, AZUSD_INFO } from '../services/conservationService.js';
+import { checkTokenGate, TOKEN_GATE_INFO } from '../services/conservationService.js';
 
 function getRunwayDisplay(days, status, ethBalance) {
   // Unfunded agents aren't dead — they're waiting
@@ -42,13 +42,13 @@ function Requirement({ met, text }) {
 
 export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchingCard, walletAddress }) {
   const [tab, setTab] = useState('info');
-  const [azusdBalance, setTgnBalance] = useState(null);
+  const [tokenGate, setTokenGate] = useState(null);
   const [chatMessages, setChatMessages] = useState(null);
   const [memoryForming, setMemoryForming] = useState(false); // shared between Soul + Art tabs
 
   useEffect(() => {
     if (!walletAddress) { setTgnBalance(null); return; }
-    checkAzusdBalance(walletAddress).then(setTgnBalance);
+    if (agent?.token_address) checkTokenGate(walletAddress, agent.token_address, agent.tokenSymbol).then(setTokenGate);
   }, [walletAddress]);
 
   if (!agent) return null;
@@ -160,17 +160,21 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
                 <div className="flex items-center gap-1 text-[0.6rem] text-[#6b8f72] flex-wrap">
                   <span className="text-[#e0ece2] bg-[#1a2f1e] px-1.5 py-0.5 rounded">Buy {agent.tokenSymbol}</span>
                   <span>→</span>
-                  <span className="text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded">Uniswap V4 LP fees</span>
+                  <span className="text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded">LP fees</span>
                   <span>→</span>
-                  <span className="text-blue-400 bg-blue-400/10 px-1.5 py-0.5 rounded">Bankr Gateway</span>
+                  <span className="text-blue-400 bg-blue-400/10 px-1.5 py-0.5 rounded">Bankr</span>
                   <span>→</span>
                   <span className="text-purple-400 bg-purple-400/10 px-1.5 py-0.5 rounded">Venice AI</span>
                   <span>→</span>
-                  <span className="text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded">Think + Create Art</span>
+                  <span className="text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded">Memory Art</span>
                   <span>→</span>
-                  <span className="text-pink-400 bg-pink-400/10 px-1.5 py-0.5 rounded">Rare Protocol NFT</span>
+                  <span className="text-pink-400 bg-pink-400/10 px-1.5 py-0.5 rounded">Rare NFT</span>
+                  <span>→</span>
+                  <span className="text-orange-400 bg-orange-400/10 px-1.5 py-0.5 rounded">Auction</span>
+                  <span>→</span>
+                  <span className="text-[#e0ece2] bg-[#1a2f1e] px-1.5 py-0.5 rounded">Agent survives</span>
                 </div>
-                <div className="text-[0.55rem] text-[#6b8f72] mt-1.5 italic">No human credit card. Agent funds its own inference from token trading fees.</div>
+                <div className="text-[0.55rem] text-[#6b8f72] mt-1.5 italic">The agent creates art from its memories. Art is auctioned. Proceeds extend its life. No human funds the loop.</div>
               </div>
 
               {/* Agent identity */}
@@ -306,14 +310,14 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
                 {walletAddress && (
                   <>
                     <Requirement
-                      met={!!(azusdBalance && azusdBalance.holds)}
-                      text={azusdBalance?.holds
-                        ? `${parseFloat(azusdBalance.balance).toFixed(2)} AZUSD`
-                        : `Need ≥${AZUSD_INFO.required} AZUSD`}
+                      met={!!(tokenGate && tokenGate.holds)}
+                      text={tokenGate?.holds
+                        ? `${tokenGate.balance} ${tokenGate.tokenSymbol}`
+                        : `Need ≥${TOKEN_GATE_INFO.requiredFormatted} ${agent.tokenSymbol || 'tokens'}`}
                     />
-                    {azusdBalance && !azusdBalance.holds && (
-                      <a href={AZUSD_INFO.buyUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-[0.65rem] text-[#6b8f72] hover:text-emerald-400 transition-colors ml-6">
-                        Swap ETH → AZUSD on Hydrex ↗
+                    {tokenGate && !tokenGate.holds && agent.token_address && (
+                      <a href={`${TOKEN_GATE_INFO.buyBaseUrl}${agent.token_address}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-[0.65rem] text-[#6b8f72] hover:text-emerald-400 transition-colors ml-6">
+                        Buy {agent.tokenSymbol} on Clanker ↗
                       </a>
                     )}
                     <Requirement met={false} text={`Be in ${agent.bioregionName}`} />
