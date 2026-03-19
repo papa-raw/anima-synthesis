@@ -5,7 +5,7 @@ import { getCurrentPosition, createLocationProof, formatCoordinates } from '../s
 import { findBioregionAtCoordinate } from '../services/bioregionService.js';
 import { checkTokenGate, TOKEN_GATE_INFO } from '../services/conservationService.js';
 import { submitCapture } from '../services/agentApi.js';
-import { checkNameAvailable, commitName, registerBasename, saveAgentName, MIN_COMMITMENT_AGE } from '../services/basenameService.js';
+import { checkNameAvailable, registerBasename, saveAgentName } from '../services/basenameService.js';
 
 function CaptureStep({ num, label, state, children }) {
   const colorMap = {
@@ -47,11 +47,9 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
   });
   const [nameInput, setNameInput] = useState('');
   const [nameCheck, setNameCheck] = useState(null);
-  const [nameStatus, setNameStatus] = useState('idle'); // idle | checking | committing | waiting | registering | success | skipped
+  const [nameStatus, setNameStatus] = useState('idle'); // idle | checking | registering | success | skipped
   const [nameError, setNameError] = useState(null);
   const [nameTxHash, setNameTxHash] = useState(null);
-  const [nameSecret, setNameSecret] = useState(null);
-  const [countdown, setCountdown] = useState(0);
   const [tokenBalance, setTokenBalance] = useState(null);
   const [location, _setLocation] = useState(null);
   const locationRef = useRef(null);
@@ -264,8 +262,8 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
             )}
           </CaptureStep>
 
-          <CaptureStep num={4} label="Name Your Agent (Basename)" state={nameStatus === 'success' || nameStatus === 'skipped' ? 'success' : nameStatus === 'committing' || nameStatus === 'waiting' || nameStatus === 'registering' ? 'checking' : states.proof === 'created' ? 'pending' : 'pending'}>
-            {states.proof === 'created' && !['success', 'skipped', 'committing', 'waiting', 'registering'].includes(nameStatus) && (
+          <CaptureStep num={4} label="Name Your Agent (Basename)" state={nameStatus === 'success' || nameStatus === 'skipped' ? 'success' : nameStatus === 'registering' ? 'checking' : states.proof === 'created' ? 'pending' : 'pending'}>
+            {states.proof === 'created' && nameStatus !== 'success' && nameStatus !== 'skipped' && nameStatus !== 'registering' && (
               <div>
                 <div className="text-xs text-[#6b8f72] mb-2">
                   Register a <span className="text-[#e0ece2]">.base.eth</span> name for {agent.pokemon}. The name becomes its onchain identity.
@@ -318,38 +316,15 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
                   <button
                     onClick={async () => {
                       if (!nameCheck?.available || !nameInput) return;
-                      setNameStatus('committing');
+                      setNameStatus('registering');
                       setNameError(null);
                       try {
-                        // Step 1: Commit (prevents frontrunning)
-                        const commitResult = await commitName(nameInput, agent.wallet_address);
-                        setNameSecret(commitResult.secret);
-                        // Step 2: 60-second countdown
-                        setNameStatus('waiting');
-                        setCountdown(MIN_COMMITMENT_AGE);
-                        const timer = setInterval(() => {
-                          setCountdown(c => {
-                            if (c <= 1) {
-                              clearInterval(timer);
-                              // Step 3: Auto-register after countdown
-                              setNameStatus('registering');
-                              registerBasename(nameInput, agent.wallet_address, commitResult.secret)
-                                .then(async (result) => {
-                                  setNameTxHash(result.txHash);
-                                  await saveAgentName(agent.id, result.fullName, result.txHash, walletAddress);
-                                  setNameStatus('success');
-                                  setStates(s => ({ ...s, naming: 'verified' }));
-                                  setTimeout(() => onSuccess({ named: result.fullName }), 2000);
-                                })
-                                .catch(err => {
-                                  setNameError(err.reason || err.shortMessage || err.message);
-                                  setNameStatus('idle');
-                                });
-                              return 0;
-                            }
-                            return c - 1;
-                          });
-                        }, 1000);
+                        const result = await registerBasename(nameInput, agent.wallet_address);
+                        setNameTxHash(result.txHash);
+                        await saveAgentName(agent.id, result.fullName, result.txHash, walletAddress);
+                        setNameStatus('success');
+                        setStates(s => ({ ...s, naming: 'verified' }));
+                        setTimeout(() => onSuccess({ named: result.fullName }), 2000);
                       } catch (err) {
                         setNameError(err.reason || err.shortMessage || err.message);
                         setNameStatus('idle');
@@ -372,29 +347,8 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
                   </button>
                 </div>
                 <div className="text-[0.5rem] text-[#6b8f72] mt-2">
-                  ~0.001 ETH for 5-9 chars · two transactions (commit + register) · 60s wait between
+                  ~0.001 ETH for 5-9 chars · single transaction · via Basenames on Base
                 </div>
-              </div>
-            )}
-            {nameStatus === 'committing' && (
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-t-transparent border-sky-400 rounded-full animate-spin" />
-                <span className="text-sm text-[#6b8f72]">Committing name reservation...</span>
-              </div>
-            )}
-            {nameStatus === 'waiting' && (
-              <div>
-                <div className="text-sm text-[#e0ece2] mb-2">Name committed. Waiting for reveal window...</div>
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 bg-[#111a14] rounded-full h-2 overflow-hidden">
-                    <div
-                      className="h-full bg-sky-400 transition-all duration-1000"
-                      style={{ width: `${((MIN_COMMITMENT_AGE - countdown) / MIN_COMMITMENT_AGE) * 100}%` }}
-                    />
-                  </div>
-                  <span className="text-sm font-mono text-sky-400 w-8 text-right">{countdown}s</span>
-                </div>
-                <div className="text-[0.5rem] text-[#6b8f72] mt-1">Anti-frontrunning protection — your name is secured</div>
               </div>
             )}
             {nameStatus === 'registering' && (

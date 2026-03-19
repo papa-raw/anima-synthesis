@@ -2,7 +2,7 @@
  * Basename Service — ENS naming on Base via Basenames
  *
  * After capture, the catcher registers a .base.eth name for the agent.
- * Uses commit-reveal pattern: commit() → wait 60s → register()
+ * Single register() call — NO commit-reveal on L2.
  *
  * RegistrarController (Base mainnet): 0x4cCb0BB02FCABA27e82a56646E81d8c5bC4119a5
  * Cost: 0.001 ETH for 5-9 char names, 0.0001 ETH for 10+ chars
@@ -11,16 +11,13 @@
 const REGISTRAR_CONTROLLER = '0x4cCb0BB02FCABA27e82a56646E81d8c5bC4119a5';
 const L2_RESOLVER = '0xC6d566A56A1aFf6508b41f6c90ff131615583BCD';
 
+// Basenames RegistrarController ABI — no commit/reveal, just register(struct)
 const REGISTRAR_ABI = [
   'function available(string name) view returns (bool)',
-  'function valid(string name) view returns (bool)',
+  'function valid(string name) pure returns (bool)',
   'function registerPrice(string name, uint256 duration) view returns (uint256)',
-  'function makeCommitment(string name, address owner, uint256 duration, bytes32 secret, address resolver, bytes[] data, bool reverseRecord, uint16 ownerControlledFuses) view returns (bytes32)',
-  'function commit(bytes32 commitment)',
-  'function register(string name, address owner, uint256 duration, bytes32 secret, address resolver, bytes[] data, bool reverseRecord, uint16 ownerControlledFuses) payable',
+  'function register(tuple(string name, address owner, uint256 duration, address resolver, bytes[] data, bool reverseRecord) request) payable',
 ];
-
-const MIN_COMMITMENT_AGE = 60; // seconds
 
 /**
  * Check if a name is available
@@ -48,39 +45,12 @@ export async function checkNameAvailable(name) {
 }
 
 /**
- * Step 1: Submit commitment hash (prevents frontrunning)
- * Returns the secret needed for step 2
+ * Register a Basename for the agent's wallet — single tx, no commit-reveal
+ * @param {string} name - short name (without .base.eth)
+ * @param {string} agentWallet - the agent's wallet address (owner of the name)
+ * @returns {{ txHash, fullName }}
  */
-export async function commitName(name, agentWallet) {
-  const { ethers } = await import('ethers');
-  const provider = new ethers.BrowserProvider(window.ethereum);
-  const signer = await provider.getSigner();
-  const registrar = new ethers.Contract(REGISTRAR_CONTROLLER, REGISTRAR_ABI, signer);
-
-  const YEAR = 365n * 24n * 60n * 60n;
-  const secret = ethers.hexlify(ethers.randomBytes(32));
-
-  const commitment = await registrar.makeCommitment(
-    name, agentWallet, YEAR, secret, L2_RESOLVER, [], true, 0
-  );
-
-  const tx = await registrar.commit(commitment);
-  await tx.wait();
-
-  return {
-    secret,
-    commitTxHash: tx.hash,
-    committedAt: Math.floor(Date.now() / 1000),
-  };
-}
-
-/**
- * Step 2: Register after 60s wait
- * @param {string} name
- * @param {string} agentWallet
- * @param {string} secret - from commitName()
- */
-export async function registerBasename(name, agentWallet, secret) {
+export async function registerBasename(name, agentWallet) {
   const { ethers } = await import('ethers');
   const provider = new ethers.BrowserProvider(window.ethereum);
   const signer = await provider.getSigner();
@@ -90,10 +60,16 @@ export async function registerBasename(name, agentWallet, secret) {
   const price = await registrar.registerPrice(name, YEAR);
   const value = price + (price / 10n); // 10% buffer
 
-  const tx = await registrar.register(
-    name, agentWallet, YEAR, secret, L2_RESOLVER, [], true, 0,
-    { value }
-  );
+  const request = {
+    name,
+    owner: agentWallet,
+    duration: YEAR,
+    resolver: L2_RESOLVER,
+    data: [],
+    reverseRecord: true,
+  };
+
+  const tx = await registrar.register(request, { value });
   await tx.wait();
 
   return {
@@ -117,5 +93,3 @@ export async function saveAgentName(agentId, name, txHash, registrant) {
   }
   return res.json();
 }
-
-export { MIN_COMMITMENT_AGE };
