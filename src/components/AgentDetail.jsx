@@ -946,35 +946,38 @@ function BasenamePanel({ agent, walletAddress }) {
 }
 
 function AuctionBadge({ memory, walletAddress, onBid }) {
+  const [liveAuction, setLiveAuction] = useState(null);
+  const [timeLeft, setTimeLeft] = useState(null);
   const status = memory.auction_status;
 
-  if (status === 'reserve') {
-    return (
-      <button
-        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onBid(); }}
-        className="absolute top-1 right-1 bg-orange-500/20 text-orange-400 text-[0.55rem] px-1.5 py-0.5 rounded border border-orange-500/30 hover:bg-orange-500/30 transition-colors cursor-pointer"
-      >
-        Reserve
-      </button>
-    );
-  }
-  if (status === 'live') {
-    return (
-      <button
-        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onBid(); }}
-        className="absolute top-1 right-1 bg-orange-500/20 text-orange-400 text-[0.55rem] px-1.5 py-0.5 rounded border border-orange-500/30 hover:bg-orange-500/30 transition-colors cursor-pointer animate-pulse"
-      >
-        Live Auction
-      </button>
-    );
-  }
-  if (status === 'ended') {
-    return (
-      <span className="absolute top-1 right-1 bg-amber-500/20 text-amber-400 text-[0.55rem] px-1.5 py-0.5 rounded border border-amber-500/30">
-        Ended
-      </span>
-    );
-  }
+  // Fetch live auction data for active auctions
+  useEffect(() => {
+    if (!status || status === 'settled' || status === 'expired') return;
+    fetch(`/api/auction/${memory.nft_contract}/${memory.nft_token_id}?_=${Date.now()}`, { cache: 'no-store' })
+      .then(r => r.json())
+      .then(data => setLiveAuction(data))
+      .catch(() => {});
+  }, [memory.nft_contract, memory.nft_token_id, status]);
+
+  // Live countdown timer
+  useEffect(() => {
+    if (!liveAuction?.endsAt) { setTimeLeft(null); return; }
+    const tick = () => {
+      const left = Math.max(0, liveAuction.endsAt - Math.floor(Date.now() / 1000));
+      setTimeLeft(left);
+    };
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [liveAuction?.endsAt]);
+
+  const formatTime = (s) => {
+    if (s === null) return '';
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return m > 0 ? `${m}m` : `${sec}s`;
+  };
+
   if (status === 'settled') {
     return (
       <span className="absolute top-1 right-1 bg-emerald-500/20 text-emerald-400 text-[0.55rem] px-1.5 py-0.5 rounded border border-emerald-500/30">
@@ -982,7 +985,36 @@ function AuctionBadge({ memory, walletAddress, onBid }) {
       </span>
     );
   }
-  // No auction or wallet → show NFT link or Bid button
+  if (status === 'ended' || (timeLeft !== null && timeLeft <= 0)) {
+    return (
+      <span className="absolute top-1 right-1 bg-amber-500/20 text-amber-400 text-[0.55rem] px-1.5 py-0.5 rounded border border-amber-500/30">
+        Ended
+      </span>
+    );
+  }
+  // Live auction with countdown
+  if (timeLeft !== null && timeLeft > 0) {
+    return (
+      <button
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onBid(); }}
+        className="absolute top-1 right-1 bg-orange-500/20 text-orange-400 text-[0.55rem] px-1.5 py-0.5 rounded border border-orange-500/30 hover:bg-orange-500/30 transition-colors cursor-pointer animate-pulse"
+      >
+        {formatTime(timeLeft)} left
+      </button>
+    );
+  }
+  // Reserve (waiting for first bid) or no live data yet
+  if (status === 'reserve' || status === 'live') {
+    return (
+      <button
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onBid(); }}
+        className="absolute top-1 right-1 bg-orange-500/20 text-orange-400 text-[0.55rem] px-1.5 py-0.5 rounded border border-orange-500/30 hover:bg-orange-500/30 transition-colors cursor-pointer"
+      >
+        Bid
+      </button>
+    );
+  }
+  // No auction — show NFT link or Bid
   if (walletAddress) {
     return (
       <button
