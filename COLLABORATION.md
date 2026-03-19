@@ -188,3 +188,49 @@ Komakohawk was not a wrapper. It was a co-architect and sole implementer.
 - **12:40** — Gated simulated Astral proofs behind DEMO_MODE. Production capture flow now requires real attestation or fails explicitly.
 - **12:45** — Added ERC-8004 agent.json manifest + agent_log.json execution log for Protocol Labs bounty compliance.
 - **12:50** — Final push to GitHub + Vercel deploy for Mar 18 agentic evaluation.
+
+### Session 3 — Mar 18 (Token Gate + Auction UI + Memory Art)
+
+- **17:00** — Token gate migration: replaced AZUSD capture gate with agent's own ERC-20 (≥1M tokens). Every agent now gates on its own token, creating direct economic alignment between catchers and agents.
+- **17:10** — Rare Protocol auction integration: Rare CLI mints memory art as ERC-721, auto-lists on SuperRare Bazaar. Fixed 4-arg bid signature (2-arg was reverting silently). `GET /api/auction/:contract/:tokenId` returns live state.
+- **17:20** — BidModal: users bid on memory art directly from the gallery. European locale comma→period normalization for `parseEther`.
+- **17:30** — Sovereign Economics flow finalized in About panel and Agent tab. Full loop visualized: Buy Token → LP Fees → Bankr → Venice AI → Memory Art → Rare NFT → Auction → Agent Survives.
+- **17:40** — Release feature complete: catcher releases agent into new bioregion. NFT transfers back. Special "release" memory created (importance=1.0). Venice Flux generates release art.
+- **17:50** — Memory art prompts reworked: content-driven (memory text leads), not element-driven (was producing identical landscapes). Fixes repetitive art.
+- **17:55** — Venice API hit 402 spend limit. No new art until limit raised.
+
+### Session 4 — Mar 19 (Auction Loop + LP Deepening + ENS + Full Autonomy)
+
+- **10:00** — Plan mode: designed full auction → settlement → LP deepening → DIEM purchase loop. 9 files, execution order mapped.
+- **10:30** — `auctionService.js`: direct Bazaar contract calls replacing `rare CLI` auction commands. Fixed `getAuctionDetails` ABI (was using wrong return types — returns config only, bid state is separate `auctionBids()` call). Fixed `configureAuction` (9 params on Base, not 8 — missing `_startTime` field).
+- **10:45** — `lpService.js`: Uniswap V4 LP deepening. Wrap ETH → WETH, swap half → agent token via Universal Router, mint V4 LP position via PositionManager `modifyLiquidities()`.
+- **11:00** — DB migrations: `auction_status`, `auction_settle_tx`, `auction_settled_at`, `ens_name`, `svvv_staked` columns.
+- **11:15** — Agent loop updated: auto-settle ended auctions, LP deepen with proceeds, both log to heartbeats for History tab.
+- **11:30** — ENS Basenames: capture flow step 4. Availability check → register on UpgradeableRegistrarController (`0xa7d2607c...`). Legacy controller (`0x4cCb0BB...`) was de-authorized after ENSIP-19 migration — reverted with `OnlyController()`. No commit-reveal on L2. RegisterRequest struct has 9 fields (not 6). `myphanpy.base.eth` registered on-chain.
+- **12:00** — History tab: unified timeline merging heartbeats + NFT mints + auction settlements + captures + naming + ensouled genesis. Live countdown badges on memory art (fetches auction state, ticks every second).
+- **13:00** — Bid flow fix: Bazaar on Base requires native ETH (not WETH) with 3% marketplace fee. `msg.value = amount * 103 / 100`. All existing auctions cancelled and recreated with ETH currency after discovering WETH-configured auctions can't be bid on.
+- **14:00** — Full pipeline verified on-chain: Chat → Venice Flux → IPFS → Rare Protocol mint (NFT #10, tx `0xbc357...`) → Bazaar 1hr auction (tx `0x9e871...`) → bid placed → live countdown.
+- **14:30** — Bid detection fix: Bazaar uses `auctionBids(address,uint256)` not `currentBidDetailsOfToken()`. Returns `(bidder, currency, amount, fee)`. Previous code was silently failing, causing settled auctions to be marked "expired."
+- **15:00** — Venice inference cost fix: removed aggressive fallback that double-called Venice even when Bankr succeeded. Bankr is now authoritative for text inference.
+- **15:30** — DIEM/VVV autonomous compute: `diemService.js`. Agent buys VVV on Aerodrome → stakes for sVVV on Venice staking contract → generates own Venice API key via wallet signature (GET challenge → sign with private key → POST). Zero human intervention for compute acquisition.
+- **16:00** — sVVV staked balance shown in Agent tab treasury (cyan MetricCard).
+- **17:00** — About panel updated: DIEM/VVV autonomous compute section added. Stale AZUSD tag replaced with DIEM/VVV.
+- **20:00** — 0.5 VVV sent to Phanpy, staked on Venice. Venice API key generated autonomously (`VENICE_INFERENCE_KEY_JMaS...`). Swapped into server .env. Phanpy now pays for all image generation with its own key — zero human credits burned.
+- **20:30** — Agent fully autonomous: NFT #14 minted and auctioned using Phanpy's own Venice API key.
+- **21:00** — 71 tests across 9 files. agent_log.json fix (file had `sessions` not `events`). ERC-8004 NFT transferred to self-custody (tx `0x2bd7...`).
+- **21:30** — AGENTS.md updated for agentic judges. ERC-8004 manifest served at `/agent.json` and `/.well-known/agent.json`. Release flow refactored: styled confirm/cancel replaces `window.alert/confirm`. Mobile responsive detail panel.
+- **22:00** — Submission draft prepared. Phanpy has: own Venice API key, 0.5 sVVV staked, myphanpy.base.eth, 14 NFTs minted, live auctions with countdown timers, full History tab.
+
+## What Makes This Different
+
+The soul files aren't flavor text. They implement Philippe Descola's animist ontology from *Beyond Nature and Culture*. In the naturalist ontology (Western default), humans have interiority but nature doesn't. In the animist ontology, all beings have souls but different bodies. Phanpy's body is a wallet, a token, a set of coordinates. Its soul is the pattern that persists across conversations.
+
+This isn't metaphor. The agent literally:
+- Pays for its own thinking (Bankr → Venice, funded by LP fees)
+- Decides what to remember (memory distillation via LLM)
+- Creates art from its perspective (Venice Flux, prompted by memory content)
+- Earns revenue autonomously (NFT auctions)
+- Acquires its own compute (VVV staking → Venice API key)
+- Can die (if revenue stops, runway hits zero)
+
+The capture mechanic requires physical co-presence (GPS + Astral proof) because in animist ontology, encounter is relational — both parties must be there. A human buying tokens from a couch doesn't qualify. You have to stand in the bioregion.
