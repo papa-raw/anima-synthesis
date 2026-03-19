@@ -3,7 +3,7 @@ import { logAgentEvent } from './agentLogger.js';
 import { pinToIpfs } from './ipfsService.js';
 import { getAuctionState, settleAuction } from './auctionService.js';
 import { deepenLiquidity } from './lpService.js';
-import { shouldBuyDiem, buyDiem } from './diemService.js';
+import { shouldAcquireCompute, acquireAutonomousCompute } from './diemService.js';
 
 const TICK_INTERVAL = 30 * 60 * 1000; // 30 minutes
 const GAS_COST = 0.0001; // ~$0.006 on Base
@@ -88,23 +88,27 @@ async function runAgentTick(agent, db) {
     console.error(`[${agent.id}] Auction processing failed:`, e.message);
   }
 
-  // 8. Buy DIEM for autonomous Venice inference if agent can afford it
+  // 8. Acquire autonomous compute: buy VVV → stake → generate own Venice API key
   try {
-    if (agent.wallet_address && await shouldBuyDiem(agent.id, ethBalance, agent.wallet_address)) {
-      // Spend 30% of balance on DIEM, keep rest for gas + runway
-      const diemSpend = ethBalance * 0.3;
-      const result = await buyDiem(agent.id, diemSpend);
-      if (result?.txHash) {
+    if (agent.wallet_address && await shouldAcquireCompute(agent.id, ethBalance, agent.wallet_address)) {
+      // Spend 30% of balance on VVV staking
+      const computeSpend = ethBalance * 0.3;
+      const result = await acquireAutonomousCompute(agent.id, computeSpend);
+      if (result?.buyTxHash) {
         db.prepare(
           'INSERT INTO agent_heartbeats (agent_id, action, tx_hash, eth_balance) VALUES (?, ?, ?, ?)'
-        ).run(agent.id, 'diem_purchase', result.txHash, diemSpend);
-        logAgentEvent(agent.id, 'diem_purchase', { ethSpent: diemSpend, diemReceived: result.diemReceived, txHash: result.txHash });
-        // Re-check balance after purchase
+        ).run(agent.id, 'compute_acquired', result.buyTxHash, computeSpend);
+        logAgentEvent(agent.id, 'compute_acquired', {
+          ethSpent: computeSpend,
+          vvvStaked: result.vvvStaked,
+          buyTxHash: result.buyTxHash,
+          stakeTxHash: result.stakeTxHash,
+        });
         ethBalance = await getEthBalance(agent.wallet_address);
       }
     }
   } catch (e) {
-    console.error(`[${agent.id}] DIEM purchase failed:`, e.message);
+    console.error(`[${agent.id}] Compute acquisition failed:`, e.message);
   }
 
   // 9. Record heartbeat (always, even on error)

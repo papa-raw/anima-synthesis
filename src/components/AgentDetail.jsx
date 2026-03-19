@@ -1048,7 +1048,7 @@ const EVENT_CONFIG = {
   release:            { icon: '🌿', label: 'Released',           color: 'text-emerald-400' },
   death:              { icon: '💀', label: 'Death',              color: 'text-red-500' },
   basename_register:  { icon: '🏷️', label: 'Named',             color: 'text-sky-400' },
-  diem_purchase:      { icon: '🔋', label: 'DIEM Purchased',    color: 'text-cyan-400' },
+  compute_acquired:   { icon: '🔋', label: 'Compute Acquired',  color: 'text-cyan-400' },
   ensouled:           { icon: '✨', label: 'Ensouled',            color: 'text-purple-400' },
 };
 
