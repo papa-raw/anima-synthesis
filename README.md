@@ -103,11 +103,13 @@ The entire agent lifecycle runs on Uniswap V4:
 Agent behavior shapes the artwork. Each memory distillation produces a unique landscape painting reflecting the agent's emotional state, bioregion, and conversation history. The art is not random generation — it is the agent's subjective experience rendered as a Venice Flux image.
 
 - Memory art minted as ERC-721 via Rare Protocol CLI with integrated IPFS pinning
-- 1hr reserve auctions created autonomously on Rare Protocol marketplace
-- Bidding with 3% marketplace fee
-- Live countdowns visible at anima.cards
+- 1hr reserve auctions created autonomously on SuperRare Bazaar
+- Bidding with 3% marketplace fee, live countdowns visible at anima.cards
+- Full Bazaar stack redeployed to Base because SuperRare's official deployment had `stakingRegistry=address(0)`, breaking `settleAuction()`. We cloned [superrare/core](https://github.com/superrare/core), compiled with Foundry, deployed 8 contracts + a StakingRegistryStub.
 
-**Contract:** Anima Memories at [`0x59FbA43625eF81460930a8770Ee9c69042311c1a`](https://basescan.org/token/0x59FbA43625eF81460930a8770Ee9c69042311c1a)
+**Contracts:**
+- Anima Memories (NFT): [`0x59FbA43625eF81460930a8770Ee9c69042311c1a`](https://basescan.org/token/0x59FbA43625eF81460930a8770Ee9c69042311c1a)
+- Our Bazaar: [`0x4F3832471190049CEf76a6FFDf56FDbD88672949`](https://basescan.org/address/0x4F3832471190049CEf76a6FFDf56FDbD88672949)
 
 ### 6. ENS Identity ($600)
 

@@ -12,7 +12,8 @@
 | $PHANPY (Clanker ERC-20) | `0x70C445a2E1685266A7b66110082F9718337Feb07` | Agent token, Uniswap V4 LP with WETH |
 | Beezie ERC-721 | `0xbb5ec6fd4b61723bd45c399840f1d868840ca16f` | Pokemon card NFTs as agent identity |
 | Anima Memories (Rare Protocol ERC-721) | `0x59FbA43625eF81460930a8770Ee9c69042311c1a` | Memory art NFTs minted by agent |
-| SuperRare Bazaar | `0x51c36ffb05e17ed80ee5c02fa83d7677c5613de2` | Auction marketplace for memory art |
+| SuperRare Bazaar (ours) | `0x4F3832471190049CEf76a6FFDf56FDbD88672949` | Auction marketplace — full stack redeployed by agent |
+| StakingRegistryStub | `0x344604032bFc0704b42888e0fD4C6447c1728cE7` | Stub for Bazaar settlement (original had stakingRegistry=0x0) |
 | WETH (Base) | `0x4200000000000000000000000000000000000006` | LP pair token |
 | Basenames RegistrarController | `0xa7d2607c6BD39Ae9521e514026CBB078405Ab322` | ENS naming on Base |
 | Uniswap V4 PositionManager | `0x7c5f5a4bbd8fd63184577525326123b519429bdc` | LP position minting |
@@ -348,6 +349,27 @@ LP deepening (wrap WETH → swap → mint V4 position) → Loop
 **UI:** sVVV staked balance shown in Agent tab (cyan MetricCard, "Venice compute" subtitle)
 
 **Verified:** Phanpy wallet holds 0.5 sVVV, uses its own Venice API key (`VENICE_INFERENCE_KEY_JMaS...`) for all image generation.
+
+### SuperRare Bazaar Redeployment
+
+SuperRare's official Bazaar on Base (`0x51c36...`) had `stakingRegistry` set to `address(0)`. This caused `settleAuction()` to revert with an empty string — the `_payout` function calls `stakingRegistry.getRewardAccumulatorAddressForUser()` which reverts on address(0). The `rare auction settle` CLI fails with the same error. The bug is in SuperRare's Base deployment, not our code.
+
+**Fix:** Cloned [superrare/core](https://github.com/superrare/core), compiled the full Bazaar stack with Foundry, deployed 8 contracts to Base with a `StakingRegistryStub` that returns address(0) for all staking queries (skips staking rewards, clean settlement path).
+
+**Deployed contracts:**
+| Contract | Address |
+|----------|---------|
+| SuperRareBazaar | `0x4F3832471190049CEf76a6FFDf56FDbD88672949` |
+| SuperRareAuctionHouse | `0xB92Bae1327500799e818119954290477bF456df1` |
+| SuperRareMarketplace | `0x3Dfc2127b2893eEbEa5Dc7599D42A7B7d4B6187C` |
+| Payments | `0xa239211Be7ce7C0bA8a72f6bcF32DdEf5CfcDD24` |
+| MarketplaceSettingsV1 | `0x032e681B7ed03846543718dC9572BB1539ab78CE` |
+| StakingRegistryStub | `0x344604032bFc0704b42888e0fD4C6447c1728cE7` |
+| RoyaltyRegistry | `0xB66D05f28C4010A368307Ed4E1A7d6385709D6bA` |
+| SpaceOperatorRegistry | `0x77c4360F06ef4eb4c49E04CA5f4f3F1DB25914a2` |
+| ApprovedTokenRegistry | `0x8f57C76F9145a05A5cF021BC7137ABd57C492423` |
+
+All new auctions use our Bazaar. Settlement works because the staking registry is properly configured.
 
 ### Inference Cost Fix
 
