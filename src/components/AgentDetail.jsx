@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import StatusPill from './StatusPill.jsx';
 import { ELEMENT_TYPES } from '../data/types.js';
-import { Wallet, Timer, Coin, Users, Lightning, TreePalm, MapPin, ChatCircleDots, X, Info, Cards, ImageSquare, ClockCounterClockwise } from '@phosphor-icons/react';
+import { Wallet, Timer, Coin, Users, Lightning, TreePalm, MapPin, ChatCircleDots, X, Info, Cards, ImageSquare, ClockCounterClockwise, PencilSimple } from '@phosphor-icons/react';
+import { checkNameAvailable, registerBasename, saveAgentName } from '../services/basenameService.js';
 import { checkTokenGate, TOKEN_GATE_INFO } from '../services/conservationService.js';
 
 function getRunwayDisplay(days, status, ethBalance) {
@@ -234,6 +235,11 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
                     </a>
                   </div>
                 </div>
+              )}
+
+              {/* Basename naming (captured agents, catcher only) */}
+              {agent.status === 'captured' && agent.captured_by && walletAddress && agent.captured_by.toLowerCase() === walletAddress.toLowerCase() && (
+                <BasenamePanel agent={agent} walletAddress={walletAddress} />
               )}
 
               {/* Capture history (shown when captured) */}
@@ -831,6 +837,120 @@ function MemoryGallery({ agentId, agentColor, artGenerating, walletAddress }) {
         ))}
       </div>
       {bidTarget && <BidModal memory={bidTarget} onClose={() => setBidTarget(null)} />}
+    </div>
+  );
+}
+
+function BasenamePanel({ agent, walletAddress }) {
+  const [editing, setEditing] = useState(!agent.ens_name);
+  const [nameInput, setNameInput] = useState('');
+  const [nameCheck, setNameCheck] = useState(null);
+  const [status, setStatus] = useState('idle'); // idle | checking | registering | success | error
+  const [error, setError] = useState(null);
+  const [txHash, setTxHash] = useState(null);
+  const checkTimer = useRef(null);
+
+  async function doCheck(val) {
+    if (val.length < 3) { setNameCheck(null); return; }
+    setStatus('checking');
+    try {
+      const result = await checkNameAvailable(val);
+      setNameCheck(result);
+      setStatus('idle');
+    } catch (err) {
+      setError(err.message);
+      setStatus('idle');
+    }
+  }
+
+  async function handleRegister() {
+    if (!nameCheck?.available || !nameInput) return;
+    setStatus('registering');
+    setError(null);
+    try {
+      const result = await registerBasename(nameInput, agent.wallet_address);
+      setTxHash(result.txHash);
+      await saveAgentName(agent.id, result.fullName, result.txHash, walletAddress);
+      setStatus('success');
+      setEditing(false);
+    } catch (err) {
+      setError(err.reason || err.shortMessage || err.message);
+      setStatus('idle');
+    }
+  }
+
+  return (
+    <div className="bg-[#111a14] border border-sky-500/20 rounded-lg p-3 mb-4">
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-xs uppercase tracking-[0.08em] text-sky-400">Basename</div>
+        {agent.ens_name && !editing && (
+          <button onClick={() => setEditing(true)} className="text-[#6b8f72] hover:text-sky-400">
+            <PencilSimple size={12} />
+          </button>
+        )}
+      </div>
+
+      {agent.ens_name && !editing && status !== 'success' && (
+        <div className="text-sm font-mono text-sky-400">{agent.ens_name}</div>
+      )}
+
+      {status === 'success' && (
+        <div>
+          <div className="text-sm font-mono text-sky-400">{nameInput}.base.eth</div>
+          <a href={`https://basescan.org/tx/${txHash}`} target="_blank" rel="noopener noreferrer" className="text-[0.55rem] text-[#6b8f72] hover:text-sky-400 font-mono">
+            {txHash?.slice(0, 14)}... ↗
+          </a>
+        </div>
+      )}
+
+      {editing && status !== 'success' && (
+        <div>
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <input
+              type="text"
+              value={nameInput}
+              onChange={(e) => {
+                const val = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+                setNameInput(val);
+                setNameCheck(null);
+                setError(null);
+                clearTimeout(checkTimer.current);
+                checkTimer.current = setTimeout(() => doCheck(val), 400);
+              }}
+              placeholder={agent.pokemon?.toLowerCase() || 'name'}
+              className="flex-1 bg-[#0a0f0a] border border-[#1a2f1e] rounded px-2 py-1 text-xs font-mono text-[#e0ece2] outline-none focus:border-sky-500/50"
+              disabled={status === 'registering'}
+            />
+            <span className="text-[0.6rem] text-[#6b8f72] font-mono">.base.eth</span>
+          </div>
+
+          {status === 'checking' && <div className="text-[0.6rem] text-[#6b8f72] animate-pulse">Checking...</div>}
+          {nameCheck?.available && <div className="text-[0.6rem] text-emerald-400">{nameCheck.fullName} available — {nameCheck.price} ETH</div>}
+          {nameCheck && !nameCheck.available && <div className="text-[0.6rem] text-red-400">{nameCheck.reason}</div>}
+          {error && <div className="text-[0.6rem] text-red-400">{error}</div>}
+
+          <div className="flex gap-1.5 mt-1.5">
+            <button
+              onClick={handleRegister}
+              disabled={!nameCheck?.available || status === 'registering'}
+              className="flex-1 py-1 rounded text-[0.6rem] font-bold bg-sky-500/20 text-sky-400 border border-sky-500/30 hover:bg-sky-500/30 disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              {status === 'registering' ? 'Registering...' : 'Register'}
+            </button>
+            {agent.ens_name && (
+              <button onClick={() => { setEditing(false); setError(null); }} className="py-1 px-2 rounded text-[0.6rem] text-[#6b8f72] hover:text-[#e0ece2]">
+                Cancel
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {!agent.ens_name && !editing && status !== 'success' && (
+        <button onClick={() => setEditing(true)} className="text-xs text-[#6b8f72] hover:text-sky-400">
+          + Register a .base.eth name
+        </button>
+      )}
     </div>
   );
 }
