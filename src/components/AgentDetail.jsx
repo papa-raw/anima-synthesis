@@ -585,7 +585,7 @@ function getGreeting(agent) {
   return greetings[agent.element] || `*${agent.pokemon} regards you curiously from the ${agent.bioregionName}*`;
 }
 
-const BAZAAR_ADDRESS = '0x51c36ffb05e17ed80ee5c02fa83d7677c5613de2';
+const BAZAAR_ADDRESS = '0x4F3832471190049CEf76a6FFDf56FDbD88672949';
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 function BidModal({ memory, onClose }) {

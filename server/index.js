@@ -46,7 +46,7 @@ import { createPublicClient, http, formatEther } from 'viem';
 import { base } from 'viem/chains';
 
 const auctionClient = createPublicClient({ chain: base, transport: http(process.env.BASE_RPC_URL || 'https://mainnet.base.org') });
-const BAZAAR = '0x51c36ffb05e17ed80ee5c02fa83d7677c5613de2';
+const BAZAAR = '0x4F3832471190049CEf76a6FFDf56FDbD88672949';
 const BAZAAR_ABI = [
   {
     inputs: [{ name: '_originContract', type: 'address' }, { name: '_tokenId', type: 'uint256' }],

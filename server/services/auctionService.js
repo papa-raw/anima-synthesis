@@ -12,7 +12,8 @@ import { privateKeyToAccount } from 'viem/accounts';
 const RPC = process.env.BASE_RPC_URL || 'https://mainnet.base.org';
 const publicClient = createPublicClient({ chain: base, transport: http(RPC) });
 
-const BAZAAR_ADDRESS = '0x51c36ffb05e17ed80ee5c02fa83d7677c5613de2';
+// Our deployed Bazaar with working staking registry (old one at 0x51c36... had stakingRegistry=0x0)
+const BAZAAR_ADDRESS = '0x4F3832471190049CEf76a6FFDf56FDbD88672949';
 const COLDIE_AUCTION = '0x434f4c4449455f41554354494f4e000000000000000000000000000000000000';
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 const WETH_BASE = '0x4200000000000000000000000000000000000006';
