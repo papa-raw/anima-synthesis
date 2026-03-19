@@ -3,7 +3,7 @@ import { logAgentEvent } from './agentLogger.js';
 import { pinToIpfs } from './ipfsService.js';
 import { getAuctionState, settleAuction } from './auctionService.js';
 import { deepenLiquidity } from './lpService.js';
-import { shouldAcquireCompute, acquireAutonomousCompute } from './diemService.js';
+import { shouldAcquireCompute, acquireAutonomousCompute, getStakedVvv } from './diemService.js';
 
 const TICK_INTERVAL = 30 * 60 * 1000; // 30 minutes
 const GAS_COST = 0.0001; // ~$0.006 on Base
@@ -130,9 +130,15 @@ async function runAgentTick(agent, db) {
     if (agent.token_address) holderCount = await getTokenHolderCount(agent.token_address);
   } catch { /* non-critical */ }
 
+  // Check sVVV staked balance
+  let svvvStaked = 0;
+  try {
+    if (agent.wallet_address) svvvStaked = await getStakedVvv(agent.wallet_address);
+  } catch { /* non-critical */ }
+
   // 10. Update agent record
-  db.prepare(`UPDATE agents SET eth_balance = ?, weth_earned_total = ?, runway_days = ?, holder_count = ?, last_heartbeat = datetime('now')
-    WHERE id = ?`).run(ethBalance, wethBalance, runwayDays, holderCount, agent.id);
+  db.prepare(`UPDATE agents SET eth_balance = ?, weth_earned_total = ?, runway_days = ?, holder_count = ?, svvv_staked = ?, last_heartbeat = datetime('now')
+    WHERE id = ?`).run(ethBalance, wethBalance, runwayDays, holderCount, svvvStaked, agent.id);
 
   console.log(`[${agent.id}] ${action} | ETH: ${ethBalance.toFixed(6)} | WETH: ${wethBalance.toFixed(6)} | Holders: ${holderCount} | Runway: ${runwayDays.toFixed(1)}d`);
 

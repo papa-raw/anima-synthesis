@@ -162,6 +162,9 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
                 <MetricCard label="HOLDERS" value={agent.holderCount || '--'} />
                 <MetricCard label="DAILY COST" value={`$${agent.dailyCostUsd || 0.50}`} />
                 <MetricCard label="EARNED" value={`${(agent.wethEarnedTotal || 0).toFixed(4)}`} subtitle="WETH total" />
+                {agent.svvvStaked > 0 && (
+                  <MetricCard label="STAKED" value={`${agent.svvvStaked.toFixed(2)} sVVV`} subtitle="Venice compute" variant="text-cyan-400" />
+                )}
               </div>
 
               {/* Sovereign Economics — the core loop */}

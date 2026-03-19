@@ -19,6 +19,7 @@ export function initDb() {
     'ALTER TABLE agent_memories ADD COLUMN auction_settle_tx TEXT',
     'ALTER TABLE agent_memories ADD COLUMN auction_settled_at DATETIME',
     'ALTER TABLE agents ADD COLUMN ens_name TEXT',
+    'ALTER TABLE agents ADD COLUMN svvv_staked REAL DEFAULT 0',
     'ALTER TABLE agent_memories ADD COLUMN art_url TEXT',
     'ALTER TABLE agent_memories ADD COLUMN art_ipfs_cid TEXT',
     'ALTER TABLE agent_memories ADD COLUMN art_prompt TEXT',
