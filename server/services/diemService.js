@@ -29,9 +29,23 @@ const WETH = '0x4200000000000000000000000000000000000006';
 const AERO_ROUTER = '0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43';
 const AERO_FACTORY = '0x420DD381b31aEf6683db6B902084cB0FFECe40Da';
 
-const ROUTER_ABI = parseAbi([
-  'function swapExactETHForTokens(uint256 amountOutMin, tuple(address from, address to, bool stable, address factory)[] routes, address to, uint256 deadline) payable returns (uint256[] amounts)',
-]);
+const ROUTER_ABI = [{
+  inputs: [
+    { name: 'amountOutMin', type: 'uint256' },
+    { name: 'routes', type: 'tuple[]', components: [
+      { name: 'from', type: 'address' },
+      { name: 'to', type: 'address' },
+      { name: 'stable', type: 'bool' },
+      { name: 'factory', type: 'address' },
+    ]},
+    { name: 'to', type: 'address' },
+    { name: 'deadline', type: 'uint256' },
+  ],
+  name: 'swapExactETHForTokens',
+  outputs: [{ name: 'amounts', type: 'uint256[]' }],
+  stateMutability: 'payable',
+  type: 'function',
+}];
 
 const ERC20_ABI = parseAbi([
   'function balanceOf(address) view returns (uint256)',
