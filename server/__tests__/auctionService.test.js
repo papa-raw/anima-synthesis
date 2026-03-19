@@ -94,7 +94,7 @@ describe('auctionService', () => {
       // args: [auctionType, nftContract, tokenId, startingAmount, currency, duration, startTime, splitAddrs, splitRatios]
       expect(call.args[1]).toBe(NFT_CONTRACT); // origin contract
       expect(call.args[2]).toBe(42n); // token ID
-      expect(call.args[4]).toBe(ZERO); // ETH currency
+      expect(call.args[4]).toBe('0x4200000000000000000000000000000000000006'); // WETH currency
       expect(call.args[5]).toBe(3600n); // 1 hour
       expect(call.args[6]).toBe(0n); // startTime = 0 (reserve)
       expect(call.args[7]).toEqual(['0xAgentWallet']); // 100% to agent

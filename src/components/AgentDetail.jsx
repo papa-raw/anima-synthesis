@@ -558,19 +558,7 @@ function getGreeting(agent) {
 }
 
 const BAZAAR_ADDRESS = '0x51c36ffb05e17ed80ee5c02fa83d7677c5613de2';
-const BAZAAR_BID_ABI = [{
-  inputs: [
-    { name: '_originContract', type: 'address' },
-    { name: '_tokenId', type: 'uint256' },
-    { name: '_currencyAddress', type: 'address' },
-    { name: '_amount', type: 'uint256' }
-  ],
-  name: 'bid',
-  outputs: [],
-  stateMutability: 'payable',
-  type: 'function'
-}];
-const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+const WETH_BASE = '0x4200000000000000000000000000000000000006';
 
 function BidModal({ memory, onClose }) {
   const [auction, setAuction] = useState(null);
@@ -598,7 +586,6 @@ function BidModal({ memory, onClose }) {
 
   async function handleBid() {
     if (!window.ethereum) { setError('Connect wallet first'); setStatus('error'); return; }
-    // Normalize locale: comma → period (European decimals)
     const normalized = String(amount).replace(',', '.');
     const val = parseFloat(normalized);
     if (isNaN(val) || val <= 0) { setError('Enter a valid bid amount'); setStatus('error'); return; }
@@ -608,17 +595,43 @@ function BidModal({ memory, onClose }) {
       const { ethers } = await import('ethers');
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
-      const bazaar = new ethers.Contract(BAZAAR_ADDRESS, [
-        'function bid(address _originContract, uint256 _tokenId, address _currencyAddress, uint256 _amount) payable'
-      ], signer);
       const bidWei = ethers.parseEther(normalized);
+
+      // Bazaar on Base requires WETH (ERC-20), not native ETH
+      // Step 1: Wrap ETH → WETH if needed
+      const weth = new ethers.Contract(WETH_BASE, [
+        'function deposit() payable',
+        'function approve(address spender, uint256 amount) returns (bool)',
+        'function balanceOf(address) view returns (uint256)',
+        'function allowance(address owner, address spender) view returns (uint256)',
+      ], signer);
+
+      const signerAddr = await signer.getAddress();
+      const wethBal = await weth.balanceOf(signerAddr);
+      if (wethBal < bidWei) {
+        // Wrap enough ETH to cover the bid
+        const wrapAmount = bidWei - wethBal;
+        const wrapTx = await weth.deposit({ value: wrapAmount });
+        await wrapTx.wait();
+      }
+
+      // Step 2: Approve Bazaar to spend WETH
+      const allowance = await weth.allowance(signerAddr, BAZAAR_ADDRESS);
+      if (allowance < bidWei) {
+        const approveTx = await weth.approve(BAZAAR_ADDRESS, ethers.MaxUint256);
+        await approveTx.wait();
+      }
+
+      // Step 3: Bid with WETH
       setStatus('confirming');
+      const bazaar = new ethers.Contract(BAZAAR_ADDRESS, [
+        'function bid(address _originContract, uint256 _tokenId, address _currencyAddress, uint256 _amount)'
+      ], signer);
       const tx = await bazaar.bid(
         memory.nft_contract,
         memory.nft_token_id,
-        ZERO_ADDRESS,
-        bidWei,
-        { value: bidWei }
+        WETH_BASE,
+        bidWei
       );
       await tx.wait();
       setTxHash(tx.hash);
@@ -692,11 +705,11 @@ function BidModal({ memory, onClose }) {
                   </div>
                   <div className="text-right">
                     {auction.isReserve ? (
-                      <div className="text-[0.55rem] text-orange-400">Waiting for first bid</div>
+                      <div className="text-[0.55rem] text-orange-400">First bid starts {Math.floor(auction.lengthSeconds / 60)}m clock</div>
                     ) : timeLeft !== null ? (
                       <div className="text-[0.55rem] text-orange-400">{hoursLeft}h {minsLeft}m left</div>
                     ) : null}
-                    <div className="text-[0.55rem] text-[#6b8f72]">Min: {auction.minBid} ETH</div>
+                    <div className="text-[0.55rem] text-[#6b8f72]">Min: {auction.minBid} WETH</div>
                   </div>
                 </div>
 
@@ -722,7 +735,7 @@ function BidModal({ memory, onClose }) {
                   disabled={status === 'signing' || status === 'confirming'}
                   className="w-full py-2.5 rounded-lg font-bold text-sm transition-all bg-orange-500/20 text-orange-400 border border-orange-500/30 hover:bg-orange-500/30 disabled:opacity-50 disabled:cursor-wait"
                 >
-                  {status === 'signing' ? 'Confirm in wallet...' : status === 'confirming' ? 'Confirming...' : `Bid ${amount || ''} ETH`}
+                  {status === 'signing' ? 'Wrapping ETH + approving...' : status === 'confirming' ? 'Confirming bid...' : `Bid ${amount || ''} WETH`}
                 </button>
 
                 <div className="text-[0.5rem] text-[#6b8f72] mt-2 text-center">

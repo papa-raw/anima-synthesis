@@ -15,6 +15,7 @@ const publicClient = createPublicClient({ chain: base, transport: http(RPC) });
 const BAZAAR_ADDRESS = '0x51c36ffb05e17ed80ee5c02fa83d7677c5613de2';
 const COLDIE_AUCTION = '0x434f4c4449455f41554354494f4e000000000000000000000000000000000000';
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+const WETH_BASE = '0x4200000000000000000000000000000000000006';
 
 // Load agent private keys from env (same pattern as clankerService)
 function getAgentKey(agentId) {
@@ -173,7 +174,7 @@ export async function createAuction(agentId, nftContract, tokenId, opts = {}) {
       nftContract,
       BigInt(tokenId),
       startingPrice,
-      ZERO_ADDRESS, // ETH
+      WETH_BASE, // WETH on Base (Bazaar requires ERC-20, not native ETH)
       BigInt(duration),
       0n, // startTime = 0 → reserve auction (clock starts on first bid)
       [account.address], // 100% to agent
