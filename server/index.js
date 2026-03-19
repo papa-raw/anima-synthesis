@@ -41,6 +41,90 @@ app.get('/api/agent-log', (req, res) => {
   }
 });
 
+// Rare Protocol auction status (SuperRare Bazaar on Base)
+import { createPublicClient, http, formatEther } from 'viem';
+import { base } from 'viem/chains';
+
+const auctionClient = createPublicClient({ chain: base, transport: http(process.env.BASE_RPC_URL || 'https://mainnet.base.org') });
+const BAZAAR = '0x51c36ffb05e17ed80ee5c02fa83d7677c5613de2';
+const BAZAAR_ABI = [
+  {
+    inputs: [{ name: '_originContract', type: 'address' }, { name: '_tokenId', type: 'uint256' }],
+    name: 'getAuctionDetails',
+    outputs: [
+      { name: 'auctionCreator', type: 'address' },
+      { name: 'creationBlock', type: 'uint256' },
+      { name: 'startTime', type: 'uint256' },
+      { name: 'lengthOfAuction', type: 'uint256' },
+      { name: 'currencyAddress', type: 'address' },
+      { name: 'minimumBid', type: 'uint256' },
+      { name: 'auctionType', type: 'bytes32' },
+      { name: 'splitAddresses', type: 'address[]' },
+      { name: 'splitRatios', type: 'uint8[]' }
+    ],
+    stateMutability: 'view',
+    type: 'function'
+  },
+  {
+    inputs: [{ name: '_originContract', type: 'address' }, { name: '_tokenId', type: 'uint256' }],
+    name: 'currentBidDetailsOfToken',
+    outputs: [
+      { name: 'amount', type: 'uint256' },
+      { name: 'bidder', type: 'address' }
+    ],
+    stateMutability: 'view',
+    type: 'function'
+  }
+];
+
+app.get('/api/auction/:contract/:tokenId', async (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  try {
+    const { contract, tokenId } = req.params;
+    const details = await auctionClient.readContract({
+      address: BAZAAR, abi: BAZAAR_ABI, functionName: 'getAuctionDetails',
+      args: [contract, BigInt(tokenId)]
+    });
+    const [creator, , startTime, length, currency, minBid, auctionType] = details;
+    if (creator === '0x0000000000000000000000000000000000000000') {
+      return res.json({ active: false });
+    }
+
+    // Try to get current bid
+    let currentBid = '0', currentBidder = null;
+    try {
+      const bidDetails = await auctionClient.readContract({
+        address: BAZAAR, abi: BAZAAR_ABI, functionName: 'currentBidDetailsOfToken',
+        args: [contract, BigInt(tokenId)]
+      });
+      currentBid = formatEther(bidDetails[0]);
+      if (bidDetails[1] !== '0x0000000000000000000000000000000000000000') currentBidder = bidDetails[1];
+    } catch { /* no bid yet */ }
+
+    const startNum = Number(startTime);
+    const lengthNum = Number(length);
+    const now = Math.floor(Date.now() / 1000);
+    const isReserve = startNum === 0; // reserve auction hasn't had first bid yet
+    const endsAt = startNum > 0 ? startNum + lengthNum : null;
+    const expired = endsAt ? now > endsAt : false;
+
+    res.json({
+      active: !expired,
+      creator,
+      currency,
+      minBid: formatEther(minBid),
+      currentBid,
+      currentBidder,
+      isReserve,
+      endsAt,
+      lengthSeconds: lengthNum,
+      bazaar: BAZAAR
+    });
+  } catch (e) {
+    res.json({ active: false, error: e.message });
+  }
+});
+
 // Serve generated art
 app.use('/art', express.static(join(__dirname, '../public/art')));
 
