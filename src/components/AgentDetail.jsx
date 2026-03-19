@@ -960,9 +960,12 @@ function AuctionBadge({ memory, walletAddress, onBid }) {
 
   if (status === 'reserve') {
     return (
-      <span className="absolute top-1 right-1 bg-orange-500/20 text-orange-400 text-[0.55rem] px-1.5 py-0.5 rounded border border-orange-500/30">
+      <button
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onBid(); }}
+        className="absolute top-1 right-1 bg-orange-500/20 text-orange-400 text-[0.55rem] px-1.5 py-0.5 rounded border border-orange-500/30 hover:bg-orange-500/30 transition-colors cursor-pointer"
+      >
         Reserve
-      </span>
+      </button>
     );
   }
   if (status === 'live') {

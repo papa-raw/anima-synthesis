@@ -80,6 +80,12 @@ export async function generateMemoryArt(agent, memory) {
     const artDir = join(__dirname, '../../public/art');
     mkdirSync(artDir, { recursive: true });
 
+    // Reject corrupt/tiny images (Venice sometimes returns garbage < 5KB)
+    if (imageBuffer.length < 5000) {
+      console.warn(`[${agent.id}] Art too small (${imageBuffer.length} bytes) — likely corrupt, skipping`);
+      return null;
+    }
+
     const isWebP = imageBuffer[0] === 0x52 && imageBuffer[1] === 0x49;
     const isPNG = imageBuffer[0] === 0x89 && imageBuffer[1] === 0x50;
     const ext = isWebP ? 'webp' : isPNG ? 'png' : 'jpg';
