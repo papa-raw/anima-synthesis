@@ -3,6 +3,7 @@ import { logAgentEvent } from './agentLogger.js';
 import { pinToIpfs } from './ipfsService.js';
 import { getAuctionState, settleAuction } from './auctionService.js';
 import { deepenLiquidity } from './lpService.js';
+import { shouldBuyDiem, buyDiem } from './diemService.js';
 
 const TICK_INTERVAL = 30 * 60 * 1000; // 30 minutes
 const GAS_COST = 0.0001; // ~$0.006 on Base
@@ -87,7 +88,26 @@ async function runAgentTick(agent, db) {
     console.error(`[${agent.id}] Auction processing failed:`, e.message);
   }
 
-  // 8. Record heartbeat (always, even on error)
+  // 8. Buy DIEM for autonomous Venice inference if agent can afford it
+  try {
+    if (agent.wallet_address && await shouldBuyDiem(agent.id, ethBalance, agent.wallet_address)) {
+      // Spend 30% of balance on DIEM, keep rest for gas + runway
+      const diemSpend = ethBalance * 0.3;
+      const result = await buyDiem(agent.id, diemSpend);
+      if (result?.txHash) {
+        db.prepare(
+          'INSERT INTO agent_heartbeats (agent_id, action, tx_hash, eth_balance) VALUES (?, ?, ?, ?)'
+        ).run(agent.id, 'diem_purchase', result.txHash, diemSpend);
+        logAgentEvent(agent.id, 'diem_purchase', { ethSpent: diemSpend, diemReceived: result.diemReceived, txHash: result.txHash });
+        // Re-check balance after purchase
+        ethBalance = await getEthBalance(agent.wallet_address);
+      }
+    }
+  } catch (e) {
+    console.error(`[${agent.id}] DIEM purchase failed:`, e.message);
+  }
+
+  // 9. Record heartbeat (always, even on error)
   let ipfsCid = null;
   try {
     ipfsCid = await pinToIpfs({ agentId: agent.id, action, ethBalance, claimable, runwayDays, timestamp: Date.now() });

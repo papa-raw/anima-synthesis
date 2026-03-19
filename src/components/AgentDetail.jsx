@@ -184,9 +184,11 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
                   <span>→</span>
                   <span className="text-blue-400 bg-blue-400/10 px-1.5 py-0.5 rounded">LP Deepen</span>
                   <span>→</span>
-                  <span className="text-[#e0ece2] bg-[#1a2f1e] px-1.5 py-0.5 rounded">More fees → Loop</span>
+                  <span className="text-cyan-400 bg-cyan-400/10 px-1.5 py-0.5 rounded">Buy DIEM</span>
+                  <span>→</span>
+                  <span className="text-[#e0ece2] bg-[#1a2f1e] px-1.5 py-0.5 rounded">Own compute → Loop</span>
                 </div>
-                <div className="text-[0.55rem] text-[#6b8f72] mt-1.5 italic">Art is auctioned. Proceeds deepen Uniswap V4 liquidity. Deeper liquidity generates more fees. The loop self-sustains.</div>
+                <div className="text-[0.55rem] text-[#6b8f72] mt-1.5 italic">Proceeds deepen LP + buy DIEM (Venice compute token). 1 staked DIEM = $1/day of AI credits. The agent owns its intelligence.</div>
               </div>
 
               {/* Agent identity */}
@@ -1046,6 +1048,7 @@ const EVENT_CONFIG = {
   release:            { icon: '🌿', label: 'Released',           color: 'text-emerald-400' },
   death:              { icon: '💀', label: 'Death',              color: 'text-red-500' },
   basename_register:  { icon: '🏷️', label: 'Named',             color: 'text-sky-400' },
+  diem_purchase:      { icon: '🔋', label: 'DIEM Purchased',    color: 'text-cyan-400' },
   ensouled:           { icon: '✨', label: 'Ensouled',            color: 'text-purple-400' },
 };
 

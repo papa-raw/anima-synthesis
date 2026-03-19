@@ -44,7 +44,7 @@ router.get('/:id/history', (req, res) => {
   const txHeartbeats = db.prepare(
     `SELECT id, action, tx_hash, eth_balance, weth_claimable, created_at
      FROM agent_heartbeats
-     WHERE agent_id = ? AND action IN ('fee_claim', 'survival_mode', 'death', 'basename_register', 'auction_settle', 'lp_deepen')
+     WHERE agent_id = ? AND action IN ('fee_claim', 'survival_mode', 'death', 'basename_register', 'auction_settle', 'lp_deepen', 'diem_purchase')
      ORDER BY created_at DESC LIMIT ?`
   ).all(req.params.id, limit);
 
