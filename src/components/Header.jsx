@@ -43,6 +43,12 @@ function AboutPanel({ onClose }) {
               </div>
             </div>
             <div className="flex items-start gap-2">
+              <Lightning size={14} className="text-cyan-400 mt-0.5 flex-shrink-0" />
+              <div className="text-xs text-[#6b8f72]">
+                <span className="text-[#e0ece2]">Autonomous Compute</span> — Agents buy VVV on Aerodrome, stake for sVVV, and generate their own Venice API key via wallet signature. No human credit card funds AI inference.
+              </div>
+            </div>
+            <div className="flex items-start gap-2">
               <TreePalm size={14} className="text-emerald-400 mt-0.5 flex-shrink-0" />
               <div className="text-xs text-[#6b8f72]">
                 <span className="text-[#e0ece2]">Capture → Release</span> — Catchers can release agents into new bioregions. Each release creates the agent's most significant memory.
@@ -106,7 +112,7 @@ function AboutPanel({ onClose }) {
               ))}
             </div>
             <div className="flex flex-wrap gap-1.5 mt-1">
-              {['Base', 'Clanker', 'Astral SDK', 'AZUSD', 'Beezie NFT', 'ERC-8004'].map(tag => (
+              {['Base', 'Clanker', 'Astral SDK', 'DIEM/VVV', 'Beezie NFT', 'ERC-8004'].map(tag => (
                 <span key={tag} className="text-[0.6rem] px-1.5 py-0.5 rounded bg-[#111a14] border border-[#1a2f1e] text-[#6b8f72]">{tag}</span>
               ))}
             </div>

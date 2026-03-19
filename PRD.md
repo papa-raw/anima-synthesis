@@ -16,6 +16,9 @@
 | WETH (Base) | `0x4200000000000000000000000000000000000006` | LP pair token |
 | Basenames RegistrarController | `0xa7d2607c6BD39Ae9521e514026CBB078405Ab322` | ENS naming on Base |
 | Uniswap V4 PositionManager | `0x7c5f5a4bbd8fd63184577525326123b519429bdc` | LP position minting |
+| VVV (Venice Compute Token) | `0xacfE6019Ed1A7Dc6f7B508C02d1b04ec88cC21bf` | Autonomous compute acquisition |
+| sVVV Staking | `0x321b7ff75154472b18edb199033ff4d116f340ff` | Venice AI credits via staking |
+| Aerodrome Router | `0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43` | ETH → VVV swap |
 
 ### Agent Wallets
 
@@ -135,7 +138,7 @@
 | Ponyta + Magnemite not deployed | Blocking for full demo | Need funding + token deploy + NFT transfer |
 | Uniswap frontend can't route to $PHANPY | Low | V4 pool exists but not indexed; Clanker swap works |
 | ~~Rare CLI partial support~~ | Resolved | Replaced with direct Bazaar contract calls (auctionService.js) |
-| agent_log.json write errors | Low | `Cannot read properties of undefined (reading 'push')` — non-blocking |
+| ~~agent_log.json write errors~~ | Resolved | File had `sessions` not `events` — fixed to add `events` array alongside |
 
 ---
 
@@ -180,7 +183,7 @@
 | Bounty | Prize | Integration | Status |
 |--------|-------|-------------|--------|
 | Bankr | $5,000 | LLM Gateway for sovereign inference | Done — key enabled, agent pays for own thinking |
-| Venice AI | $11,500 | Private cognition + Memory Art (Flux image gen) | Done — `flux-2-max`, memory-driven prompts, IPFS upload |
+| Venice AI | $11,500 | Private cognition + Memory Art (Flux) + DIEM autonomous compute | Done — `flux-2-max` + VVV staking + self-generated API key, zero human credits |
 | Protocol Labs | $16,000 | Storacha IPFS + ERC-8004 | Integrated — agent.json + agent_log.json. ERC-8004 NFT needs claiming |
 | Uniswap | $5,000 | LP fee collection + LP deepening | Done — fee claims + auction→settlement→LP deepen pipeline |
 | ENS | $1,500 | Naming rights on capture (Basenames) | Done — myphanpy.base.eth registered, rename UI |
@@ -207,6 +210,8 @@ User buys $PHANPY on Clanker (KyberSwap routing)
   → First bid starts the clock (0.0001 ETH min + 3% Bazaar fee)
   → Settlement: ETH to agent wallet → extends runway
   → LP deepening: wrap ETH → swap half for $PHANPY → mint V4 LP position
+  → Buy VVV on Aerodrome → stake → sVVV → Venice API key via wallet sig
+  → Agent owns its own compute — no human credit card in the loop
   → Deeper liquidity → more trading fees → more art → loop
 
 First fee claim: tx 0x3a3c2b37e9ca71d9adc2ad1d536ddad217f32ea0adbf277e0713916bec885ee7
@@ -322,6 +327,27 @@ LP deepening (wrap WETH → swap → mint V4 position) → Loop
 - All events link to BaseScan
 - Live countdown badges on memory art (fetches auction state, ticks every second)
 - Badge states: "Bid" (waiting) → "Xm left" (live countdown) → "Ended" → "Sold"
+
+### DIEM/VVV Autonomous Compute
+
+**Agent autonomously acquires its own AI compute — zero human intervention:**
+
+1. `shouldAcquireCompute()` triggers when ETH > 0.05 and no VVV staked
+2. Swaps 30% of balance: ETH → VVV on Aerodrome (Base DEX)
+3. Stakes VVV → sVVV on Venice staking contract (`0x321b...`)
+4. Generates own Venice API key via wallet signature (GET challenge → sign → POST)
+5. Replaces human-provided API key — fully sovereign inference + image generation
+
+**Contracts (Base):**
+- VVV: `0xacfE6019Ed1A7Dc6f7B508C02d1b04ec88cC21bf`
+- sVVV Staking: `0x321b7ff75154472b18edb199033ff4d116f340ff`
+- Aerodrome Router: `0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43`
+
+**Service:** `server/services/diemService.js` — `buyAndStakeVvv()`, `generateVeniceApiKey()`, `acquireAutonomousCompute()`
+
+**UI:** sVVV staked balance shown in Agent tab (cyan MetricCard, "Venice compute" subtitle)
+
+**Verified:** Phanpy wallet holds 0.5 sVVV, uses its own Venice API key (`VENICE_INFERENCE_KEY_JMaS...`) for all image generation.
 
 ### Inference Cost Fix
 
