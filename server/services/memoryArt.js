@@ -10,6 +10,7 @@
  */
 
 import { pinToIpfs } from './ipfsService.js';
+import { ensureBazaarApproval, createAuction } from './auctionService.js';
 
 // Read lazily — module loads before dotenv in PM2
 function getVeniceKey() { return process.env.VENICE_API_KEY; }
@@ -106,29 +107,27 @@ export async function generateMemoryArt(agent, memory) {
       console.warn(`[${agent.id}] Rare CLI mint failed (art still saved):`, e.message?.slice(0, 100));
     }
 
-    // Auto-auction via Rare Protocol (SuperRare bounty — agent sells its own art)
-    let auctionId = null;
+    // Auto-auction via Bazaar contract (replaces rare CLI)
+    let auctionStatus = null;
     if (nftTokenId) {
       try {
-        const { execSync } = await import('child_process');
-        const auctionResult = execSync(
-          `rare auction create --contract ${RARE_CONTRACT} --token-id ${nftTokenId} --starting-price 0.0001 --duration 86400 --chain base`,
-          { timeout: 60000, encoding: 'utf8' }
-        );
-        console.log(`[${agent.id}] Auction created for NFT #${nftTokenId}:`, auctionResult.trim());
-        auctionId = nftTokenId; // auction is keyed by token ID
+        await ensureBazaarApproval(agent.id, RARE_CONTRACT);
+        await createAuction(agent.id, RARE_CONTRACT, nftTokenId, { durationSeconds: 3600 });
+        auctionStatus = 'reserve';
+        console.log(`[${agent.id}] Auction created for NFT #${nftTokenId} (1hr reserve)`);
       } catch (e) {
         console.warn(`[${agent.id}] Auction creation failed:`, e.message?.slice(0, 100));
       }
     }
 
-    console.log(`[${agent.id}] Memory art generated: ${artPrompt.slice(0, 60)}... → ${nftTokenId ? 'NFT #' + nftTokenId : 'no mint'}${auctionId ? ' (auctioned)' : ''}`);
+    console.log(`[${agent.id}] Memory art generated: ${artPrompt.slice(0, 60)}... → ${nftTokenId ? 'NFT #' + nftTokenId : 'no mint'}${auctionStatus ? ' (auctioned)' : ''}`);
 
     return {
       imageUrl: localPath,
       ipfsCid: null,
       nftTokenId,
       nftContract: nftTokenId ? RARE_CONTRACT : null,
+      auctionStatus,
       prompt: artPrompt,
       model: 'flux-2-max'
     };
@@ -143,18 +142,6 @@ export async function generateMemoryArt(agent, memory) {
  * Never mention Pokemon names (triggers copyright filters on image models).
  */
 function buildArtPrompt(agent, memory) {
-  const elementMoods = {
-    fighting: 'warm earth tones, golden hour light, dry grass, ancient stone, dust motes in sunlight',
-    fire: 'blazing sunset, heat shimmer, embers floating, neon reflections on wet asphalt at night',
-    electric: 'crackling blue light, magnetic aurora, forest shrine, paper lanterns, static electricity',
-    water: 'deep ocean light filtering down, coral colors, bioluminescent glow, rain on still water',
-    nature: 'dappled green canopy light, morning mist between trees, moss on stone, fern unfurling',
-    psychic: 'purple twilight, crystalline reflections, northern lights, ethereal fog',
-    normal: 'soft golden meadow, gentle breeze, wildflowers, afternoon light'
-  };
-
-  const mood = elementMoods[agent.element] || elementMoods.normal;
-  const bioregion = agent.bioregion_name || agent.bioregionName || 'a wild landscape';
-
-  return `First-person view from a small wild creature looking out at ${bioregion}. The feeling: ${memory}. Mood: ${mood}. Digital painting, atmospheric, dreamy, no text, no characters visible, landscape perspective, painterly.`;
+  // Memory content IS the prompt. Minimal wrapper. No creature, no fixed composition.
+  return `${memory}. ${agent.bioregion_name || agent.bioregionName || ''}. Digital painting, atmospheric, painterly, vivid, no text, no words, no UI elements.`;
 }

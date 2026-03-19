@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import StatusPill from './StatusPill.jsx';
 import { ELEMENT_TYPES } from '../data/types.js';
-import { Wallet, Timer, Coin, Users, Lightning, TreePalm, MapPin, ChatCircleDots, X, Info, Cards, ImageSquare } from '@phosphor-icons/react';
+import { Wallet, Timer, Coin, Users, Lightning, TreePalm, MapPin, ChatCircleDots, X, Info, Cards, ImageSquare, ClockCounterClockwise } from '@phosphor-icons/react';
 import { checkTokenGate, TOKEN_GATE_INFO } from '../services/conservationService.js';
 
 function getRunwayDisplay(days, status, ethBalance) {
@@ -82,6 +82,9 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
               <h2 className="text-base font-bold text-[#e0ece2]">{agent.pokemon}</h2>
               <StatusPill status={agent.status || 'wild'} size="xs" />
             </div>
+            {agent.ens_name && (
+              <div className="text-xs font-mono text-sky-400">{agent.ens_name}</div>
+            )}
             <div className="flex items-center gap-1 mt-0.5">
               <MapPin size={10} className="text-[#6b8f72]" />
               <span className="text-xs text-[#6b8f72] truncate">{agent.bioregionName}</span>
@@ -127,6 +130,12 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
             <ImageSquare size={14} /> Memories
           </button>
           <button
+            onClick={() => setTab('history')}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium transition-colors ${tab === 'history' ? 'text-emerald-400 border-b-2 border-emerald-400' : 'text-[#6b8f72] hover:text-[#e0ece2]'}`}
+          >
+            <ClockCounterClockwise size={14} /> History
+          </button>
+          <button
             onClick={() => setTab('card')}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium transition-colors ${tab === 'card' ? 'text-emerald-400 border-b-2 border-emerald-400' : 'text-[#6b8f72] hover:text-[#e0ece2]'}`}
           >
@@ -154,6 +163,31 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
                 <MetricCard label="EARNED" value={`${(agent.wethEarnedTotal || 0).toFixed(4)}`} subtitle="WETH total" />
               </div>
 
+              {/* Sovereign Economics — the core loop */}
+              <div className="bg-[#111a14] border border-[#1a2f1e] rounded-lg p-3 mb-4">
+                <div className="text-xs uppercase tracking-[0.08em] text-[#6b8f72] mb-2">Sovereign Economics</div>
+                <div className="flex items-center gap-1 text-[0.6rem] text-[#6b8f72] flex-wrap">
+                  <span className="text-[#e0ece2] bg-[#1a2f1e] px-1.5 py-0.5 rounded">Buy {agent.tokenSymbol}</span>
+                  <span>→</span>
+                  <span className="text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded">LP fees</span>
+                  <span>→</span>
+                  <span className="text-blue-400 bg-blue-400/10 px-1.5 py-0.5 rounded">Bankr</span>
+                  <span>→</span>
+                  <span className="text-purple-400 bg-purple-400/10 px-1.5 py-0.5 rounded">Venice AI</span>
+                  <span>→</span>
+                  <span className="text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded">Memory Art</span>
+                  <span>→</span>
+                  <span className="text-pink-400 bg-pink-400/10 px-1.5 py-0.5 rounded">Rare NFT</span>
+                  <span>→</span>
+                  <span className="text-orange-400 bg-orange-400/10 px-1.5 py-0.5 rounded">Auction</span>
+                  <span>→</span>
+                  <span className="text-blue-400 bg-blue-400/10 px-1.5 py-0.5 rounded">LP Deepen</span>
+                  <span>→</span>
+                  <span className="text-[#e0ece2] bg-[#1a2f1e] px-1.5 py-0.5 rounded">More fees → Loop</span>
+                </div>
+                <div className="text-[0.55rem] text-[#6b8f72] mt-1.5 italic">Art is auctioned. Proceeds deepen Uniswap V4 liquidity. Deeper liquidity generates more fees. The loop self-sustains.</div>
+              </div>
+
               {/* Agent identity */}
               <div className="bg-[#111a14] border border-[#1a2f1e] rounded-lg p-3 mb-4">
                 <div className="text-xs uppercase tracking-[0.08em] text-[#6b8f72] mb-2">Identity</div>
@@ -166,6 +200,12 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
                   <span className="text-[#e0ece2] capitalize">{agent.element}</span>
                   <span className="text-[#6b8f72]">Bioregion</span>
                   <span className="text-[#e0ece2]">{agent.bioregionName}</span>
+                  {agent.ens_name && (
+                    <>
+                      <span className="text-[#6b8f72]">Basename</span>
+                      <span className="text-sky-400 font-mono">{agent.ens_name}</span>
+                    </>
+                  )}
                   {agent.last_heartbeat && (
                     <>
                       <span className="text-[#6b8f72]">Last heartbeat</span>
@@ -242,7 +282,11 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
           )}
 
           {tab === 'gallery' && (
-            <MemoryGallery agentId={agent.id} agentColor={agent.color} artGenerating={memoryForming} />
+            <MemoryGallery agentId={agent.id} agentColor={agent.color} artGenerating={memoryForming} walletAddress={walletAddress} />
+          )}
+
+          {tab === 'history' && (
+            <HistoryTimeline agentId={agent.id} />
           )}
 
           {tab === 'card' && (
@@ -421,11 +465,11 @@ function SoulChat({ agent, walletAddress, messages: savedMessages, onMessagesCha
       });
       const data = await res.json();
       setMessages(m => [...m, { role: 'agent', text: data.response || `*${agent.pokemon} stares at you silently*` }]);
-      // Show memory distillation indicator — lingers then updates
+      // Show memory distillation indicator — Venice Flux + Rare mint takes ~15-30s
       setMemoryStatus('forming');
       onMemoryForming?.('forming');
-      setTimeout(() => { setMemoryStatus('formed'); onMemoryForming?.('formed'); }, 4000);
-      setTimeout(() => { setMemoryStatus(false); onMemoryForming?.(false); }, 8000);
+      setTimeout(() => { setMemoryStatus('formed'); onMemoryForming?.('formed'); }, 15000);
+      setTimeout(() => { setMemoryStatus(false); onMemoryForming?.(false); }, 30000);
     } catch (e) {
       setMessages(m => [...m, { role: 'agent', text: `*${agent.pokemon} stares at you silently*` }]);
     }
@@ -467,7 +511,7 @@ function SoulChat({ agent, walletAddress, messages: savedMessages, onMessagesCha
               {memoryStatus === 'forming' ? (
                 <span className="text-xs italic text-[#6b8f72] opacity-60 animate-pulse">memory forming...</span>
               ) : (
-                <span className="text-xs italic text-emerald-400/70">memory formed — check Art tab</span>
+                <span className="text-xs italic text-emerald-400/70">memory formed — check Memories tab</span>
               )}
             </div>
           )}
@@ -507,32 +551,220 @@ function getGreeting(agent) {
   return greetings[agent.element] || `*${agent.pokemon} regards you curiously from the ${agent.bioregionName}*`;
 }
 
-function MemoryGallery({ agentId, agentColor, artGenerating }) {
+const BAZAAR_ADDRESS = '0x51c36ffb05e17ed80ee5c02fa83d7677c5613de2';
+const BAZAAR_BID_ABI = [{
+  inputs: [
+    { name: '_originContract', type: 'address' },
+    { name: '_tokenId', type: 'uint256' },
+    { name: '_currencyAddress', type: 'address' },
+    { name: '_amount', type: 'uint256' }
+  ],
+  name: 'bid',
+  outputs: [],
+  stateMutability: 'payable',
+  type: 'function'
+}];
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+
+function BidModal({ memory, onClose }) {
+  const [auction, setAuction] = useState(null);
+  const [loadingAuction, setLoadingAuction] = useState(true);
+  const [amount, setAmount] = useState('');
+  const [status, setStatus] = useState('idle'); // idle | signing | confirming | success | error
+  const [txHash, setTxHash] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetch(`/api/auction/${memory.nft_contract}/${memory.nft_token_id}?_=${Date.now()}`, { cache: 'no-store' })
+      .then(r => r.json())
+      .then(data => {
+        setAuction(data);
+        if (data.active) {
+          const min = parseFloat(data.currentBid) > 0
+            ? (parseFloat(data.currentBid) * 1.05).toFixed(4)
+            : data.minBid;
+          setAmount(min);
+        }
+        setLoadingAuction(false);
+      })
+      .catch(() => setLoadingAuction(false));
+  }, [memory.nft_contract, memory.nft_token_id]);
+
+  async function handleBid() {
+    if (!window.ethereum) { setError('Connect wallet first'); setStatus('error'); return; }
+    // Normalize locale: comma → period (European decimals)
+    const normalized = String(amount).replace(',', '.');
+    const val = parseFloat(normalized);
+    if (isNaN(val) || val <= 0) { setError('Enter a valid bid amount'); setStatus('error'); return; }
+    setStatus('signing');
+    setError(null);
+    try {
+      const { ethers } = await import('ethers');
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const bazaar = new ethers.Contract(BAZAAR_ADDRESS, [
+        'function bid(address _originContract, uint256 _tokenId, address _currencyAddress, uint256 _amount) payable'
+      ], signer);
+      const bidWei = ethers.parseEther(normalized);
+      setStatus('confirming');
+      const tx = await bazaar.bid(
+        memory.nft_contract,
+        memory.nft_token_id,
+        ZERO_ADDRESS,
+        bidWei,
+        { value: bidWei }
+      );
+      await tx.wait();
+      setTxHash(tx.hash);
+      setStatus('success');
+    } catch (e) {
+      const msg = e.reason || e.shortMessage || (e.message?.length > 100 ? 'Transaction failed' : e.message);
+      setError(msg);
+      setStatus('error');
+    }
+  }
+
+  const timeLeft = auction?.endsAt
+    ? Math.max(0, auction.endsAt - Math.floor(Date.now() / 1000))
+    : null;
+  const hoursLeft = timeLeft ? Math.floor(timeLeft / 3600) : null;
+  const minsLeft = timeLeft ? Math.floor((timeLeft % 3600) / 60) : null;
+
+  return (
+    <>
+      <div className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 z-[71] flex items-center justify-center p-4" onClick={onClose}>
+        <div className="w-80 bg-[#0a0f0a] border border-[#1a2f1e] rounded-xl shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+          {/* Art preview */}
+          <div className="relative">
+            <img src={memory.art_url} alt={memory.content} className="w-full aspect-square object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f0a] via-transparent to-transparent" />
+            <div className="absolute bottom-2 left-3 right-3">
+              <div className="text-xs text-[#e0ece2] leading-tight">{memory.content}</div>
+              <div className="text-[0.55rem] text-emerald-400 mt-0.5">Memory #{memory.nft_token_id} on Rare Protocol</div>
+            </div>
+            <button onClick={onClose} className="absolute top-2 right-2 text-[#6b8f72] hover:text-[#e0ece2] bg-[#0a0f0a]/60 rounded-full p-1">
+              <X size={14} />
+            </button>
+          </div>
+
+          {/* Auction info + bid form */}
+          <div className="p-4">
+            {loadingAuction ? (
+              <div className="text-center py-3">
+                <div className="w-5 h-5 border-2 border-orange-400/30 border-t-orange-400 rounded-full animate-spin mx-auto" />
+                <div className="text-xs text-[#6b8f72] mt-2">Loading auction...</div>
+              </div>
+            ) : !auction?.active ? (
+              <div className="text-center py-2">
+                <div className="text-sm text-[#6b8f72] mb-2">No active auction</div>
+                <a href={`https://basescan.org/nft/${memory.nft_contract}/${memory.nft_token_id}`} target="_blank" rel="noopener noreferrer"
+                  className="text-xs text-emerald-400 hover:underline">View on BaseScan ↗</a>
+              </div>
+            ) : status === 'success' ? (
+              <div className="text-center py-2">
+                <div className="text-emerald-400 font-bold text-sm mb-1">Bid placed on Rare Protocol</div>
+                <a href={`https://basescan.org/tx/${txHash}`} target="_blank" rel="noopener noreferrer" className="text-xs text-[#6b8f72] hover:text-emerald-400 font-mono">
+                  {txHash.slice(0, 12)}...{txHash.slice(-6)} ↗
+                </a>
+                <div className="text-[0.55rem] text-[#6b8f72] mt-2">Auction proceeds go directly to the agent's wallet.</div>
+                <button onClick={onClose} className="mt-3 w-full py-2 rounded-lg text-sm font-medium text-[#e0ece2] bg-[#1a2f1e] hover:bg-[#243826]">Done</button>
+              </div>
+            ) : (
+              <>
+                {/* Auction state */}
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <div className="text-[0.6rem] uppercase tracking-wider text-[#6b8f72]">
+                      {auction.isReserve ? 'Reserve auction' : 'Live auction'}
+                    </div>
+                    {auction.currentBidder && (
+                      <div className="text-[0.55rem] text-[#6b8f72] mt-0.5">
+                        Current: <span className="text-orange-400 font-mono">{auction.currentBid} ETH</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    {auction.isReserve ? (
+                      <div className="text-[0.55rem] text-orange-400">Waiting for first bid</div>
+                    ) : timeLeft !== null ? (
+                      <div className="text-[0.55rem] text-orange-400">{hoursLeft}h {minsLeft}m left</div>
+                    ) : null}
+                    <div className="text-[0.55rem] text-[#6b8f72]">Min: {auction.minBid} ETH</div>
+                  </div>
+                </div>
+
+                {/* Bid input */}
+                <div className="flex items-center gap-2 mb-3">
+                  <input
+                    type="number"
+                    step="0.0001"
+                    min={auction.minBid}
+                    value={amount}
+                    onChange={e => { setAmount(e.target.value); setError(null); setStatus('idle'); }}
+                    placeholder={auction.minBid}
+                    className="flex-1 bg-[#111a14] border border-[#1a2f1e] rounded-lg px-3 py-2.5 text-sm font-mono text-[#e0ece2] outline-none focus:border-orange-500/50 transition-colors"
+                    disabled={status === 'signing' || status === 'confirming'}
+                  />
+                  <span className="text-xs text-[#6b8f72] font-mono">ETH</span>
+                </div>
+
+                {error && <div className="text-xs text-red-400 mb-2">{error}</div>}
+
+                <button
+                  onClick={handleBid}
+                  disabled={status === 'signing' || status === 'confirming'}
+                  className="w-full py-2.5 rounded-lg font-bold text-sm transition-all bg-orange-500/20 text-orange-400 border border-orange-500/30 hover:bg-orange-500/30 disabled:opacity-50 disabled:cursor-wait"
+                >
+                  {status === 'signing' ? 'Confirm in wallet...' : status === 'confirming' ? 'Confirming...' : `Bid ${amount || ''} ETH`}
+                </button>
+
+                <div className="text-[0.5rem] text-[#6b8f72] mt-2 text-center">
+                  via SuperRare Bazaar · proceeds fund agent survival
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function MemoryGallery({ agentId, agentColor, artGenerating, walletAddress }) {
   const [memories, setMemories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [bidTarget, setBidTarget] = useState(null);
+  const prevCountRef = useRef(0);
 
   useEffect(() => {
     fetch(`/api/agents/${agentId}/memories?_=${Date.now()}`, { cache: 'no-store' })
       .then(r => r.json())
       .then(data => {
-        setMemories(data.filter(m => m.art_url));
+        const withArt = data.filter(m => m.art_url);
+        setMemories(withArt);
+        prevCountRef.current = withArt.length;
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, [agentId]);
 
-  // Auto-refresh when art is being generated (must be before any conditional returns)
+  // Always poll while gallery is visible — catches new art from any source
   useEffect(() => {
-    if (artGenerating === 'formed') {
-      const timer = setTimeout(() => {
-        fetch(`/api/agents/${agentId}/memories?_=${Date.now()}`, { cache: 'no-store' })
-          .then(r => r.json())
-          .then(data => setMemories(data.filter(m => m.art_url)))
-          .catch(() => {});
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [artGenerating]);
+    const interval = setInterval(() => {
+      fetch(`/api/agents/${agentId}/memories?_=${Date.now()}`, { cache: 'no-store' })
+        .then(r => r.json())
+        .then(data => {
+          const withArt = data.filter(m => m.art_url);
+          if (withArt.length !== prevCountRef.current) {
+            setMemories(withArt);
+            prevCountRef.current = withArt.length;
+          }
+        })
+        .catch(() => {});
+    }, 8000);
+    return () => clearInterval(interval);
+  }, [agentId]);
 
   if (loading) return <div className="p-4 text-center text-[#6b8f72] text-sm">Loading memories...</div>;
 
@@ -557,11 +789,13 @@ function MemoryGallery({ agentId, agentColor, artGenerating }) {
         <span className="text-[0.5rem] text-[#6b8f72] opacity-50">Venice Flux → Rare Protocol</span>
       </div>
       <div className="grid grid-cols-2 gap-2">
-        {artGenerating === 'forming' && (
+        {artGenerating && (
           <div className="aspect-square rounded-lg border border-[#1a2f1e] bg-[#111a14] flex items-center justify-center">
             <div className="text-center">
               <div className="w-8 h-8 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin mx-auto mb-2" />
-              <span className="text-xs text-[#6b8f72]">creating art...</span>
+              <span className="text-xs text-[#6b8f72]">
+                {artGenerating === 'forming' ? 'creating memory...' : 'generating art + minting NFT...'}
+              </span>
             </div>
           </div>
         )}
@@ -592,39 +826,148 @@ function MemoryGallery({ agentId, agentColor, artGenerating }) {
                 )}
               </div>
             </div>
-            {m.nft_token_id && (
-              <button
-                onClick={async () => {
-                  if (!window.ethereum) { alert('Connect wallet to bid'); return; }
-                  const amount = prompt(`Bid on Memory #${m.nft_token_id}\n\n"${m.content}"\n\nMinimum: 0.0001 ETH\nEnter bid in ETH:`);
-                  if (!amount || isNaN(parseFloat(amount))) return;
-                  try {
-                    const { ethers } = await import('ethers');
-                    const provider = new ethers.BrowserProvider(window.ethereum);
-                    const signer = await provider.getSigner();
-                    const bazaar = new ethers.Contract(
-                      '0x51c36ffb05e17ed80ee5c02fa83d7677c5613de2',
-                      ['function bid(address _originContract, uint256 _tokenId) payable'],
-                      signer
-                    );
-                    const tx = await bazaar.bid(
-                      '0x59FbA43625eF81460930a8770Ee9c69042311c1a',
-                      m.nft_token_id,
-                      { value: ethers.parseEther(amount) }
-                    );
-                    await tx.wait();
-                    alert(`Bid placed! tx: ${tx.hash}`);
-                  } catch (e) {
-                    alert('Bid failed: ' + (e.reason || e.message));
-                  }
-                }}
-                className="absolute top-1 right-1 bg-orange-500/20 text-orange-400 text-[0.55rem] px-1.5 py-0.5 rounded border border-orange-500/30 hover:bg-orange-500/30 transition-colors cursor-pointer"
-              >
-                0.0001 ETH · Bid
-              </button>
-            )}
+            {m.nft_token_id && <AuctionBadge memory={m} walletAddress={walletAddress} onBid={() => setBidTarget(m)} />}
           </div>
         ))}
+      </div>
+      {bidTarget && <BidModal memory={bidTarget} onClose={() => setBidTarget(null)} />}
+    </div>
+  );
+}
+
+function AuctionBadge({ memory, walletAddress, onBid }) {
+  const status = memory.auction_status;
+
+  if (status === 'reserve') {
+    return (
+      <span className="absolute top-1 right-1 bg-orange-500/20 text-orange-400 text-[0.55rem] px-1.5 py-0.5 rounded border border-orange-500/30">
+        Reserve
+      </span>
+    );
+  }
+  if (status === 'live') {
+    return (
+      <button
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onBid(); }}
+        className="absolute top-1 right-1 bg-orange-500/20 text-orange-400 text-[0.55rem] px-1.5 py-0.5 rounded border border-orange-500/30 hover:bg-orange-500/30 transition-colors cursor-pointer animate-pulse"
+      >
+        Live Auction
+      </button>
+    );
+  }
+  if (status === 'ended') {
+    return (
+      <span className="absolute top-1 right-1 bg-amber-500/20 text-amber-400 text-[0.55rem] px-1.5 py-0.5 rounded border border-amber-500/30">
+        Ended
+      </span>
+    );
+  }
+  if (status === 'settled') {
+    return (
+      <span className="absolute top-1 right-1 bg-emerald-500/20 text-emerald-400 text-[0.55rem] px-1.5 py-0.5 rounded border border-emerald-500/30">
+        Sold
+      </span>
+    );
+  }
+  // No auction or wallet → show NFT link or Bid button
+  if (walletAddress) {
+    return (
+      <button
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onBid(); }}
+        className="absolute top-1 right-1 bg-orange-500/20 text-orange-400 text-[0.55rem] px-1.5 py-0.5 rounded border border-orange-500/30 hover:bg-orange-500/30 transition-colors cursor-pointer"
+      >
+        Bid
+      </button>
+    );
+  }
+  return (
+    <a
+      href={`https://basescan.org/nft/${memory.nft_contract}/${memory.nft_token_id}`}
+      target="_blank" rel="noopener noreferrer"
+      className="absolute top-1 right-1 bg-emerald-500/20 text-emerald-400 text-[0.55rem] px-1.5 py-0.5 rounded border border-emerald-500/30 hover:bg-emerald-500/30 transition-colors"
+    >
+      NFT ↗
+    </a>
+  );
+}
+
+const EVENT_CONFIG = {
+  fee_claim:      { icon: '💰', label: 'Fee Claim',       color: 'text-amber-400' },
+  survival_mode:  { icon: '🔴', label: 'Survival Claim',  color: 'text-red-400' },
+  nft_mint:       { icon: '🎨', label: 'NFT Minted',      color: 'text-pink-400' },
+  auction_settle: { icon: '🔨', label: 'Auction Settled', color: 'text-orange-400' },
+  lp_deepen:      { icon: '💧', label: 'LP Deepened',     color: 'text-blue-400' },
+  capture:        { icon: '⚡', label: 'Captured',         color: 'text-emerald-400' },
+  release:        { icon: '🌿', label: 'Released',         color: 'text-emerald-400' },
+  death:          { icon: '💀', label: 'Death',            color: 'text-red-500' },
+};
+
+function HistoryTimeline({ agentId }) {
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`/api/agents/${agentId}/history?_=${Date.now()}`, { cache: 'no-store' })
+      .then(r => r.json())
+      .then(data => { setEvents(data); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [agentId]);
+
+  if (loading) return <div className="p-4 text-center text-[#6b8f72] text-sm">Loading history...</div>;
+
+  if (events.length === 0) {
+    return (
+      <div className="p-6 text-center">
+        <ClockCounterClockwise size={32} className="text-[#6b8f72] mx-auto mb-2 opacity-50" />
+        <div className="text-sm text-[#6b8f72]">No transactions yet</div>
+        <div className="text-xs text-[#6b8f72] opacity-60 mt-1">Agent transactions will appear here as they happen.</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-3">
+      <div className="text-xs text-[#6b8f72] mb-3">{events.length} events</div>
+      <div className="space-y-1">
+        {events.map((ev, i) => {
+          const config = EVENT_CONFIG[ev.type] || { icon: '•', label: ev.type, color: 'text-[#6b8f72]' };
+          const time = new Date(ev.timestamp + (ev.timestamp?.includes('Z') ? '' : 'Z'));
+          return (
+            <div key={i} className="flex items-start gap-2 py-1.5 border-b border-[#1a2f1e]/50 last:border-0">
+              <span className="text-sm flex-shrink-0 mt-0.5">{config.icon}</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <span className={`text-xs font-medium ${config.color}`}>{config.label}</span>
+                  <span className="text-[0.55rem] text-[#6b8f72]">{time.toLocaleString()}</span>
+                </div>
+                {ev.txHash && (
+                  <a
+                    href={`https://basescan.org/tx/${ev.txHash}`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="text-[0.55rem] text-[#6b8f72] hover:text-emerald-400 font-mono"
+                  >
+                    {ev.txHash.slice(0, 14)}... ↗
+                  </a>
+                )}
+                {ev.nftTokenId && !ev.txHash && (
+                  <a
+                    href={`https://basescan.org/nft/${ev.nftContract}/${ev.nftTokenId}`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="text-[0.55rem] text-[#6b8f72] hover:text-emerald-400 font-mono"
+                  >
+                    NFT #{ev.nftTokenId} ↗
+                  </a>
+                )}
+                {ev.content && (
+                  <div className="text-[0.55rem] text-[#6b8f72] truncate">{ev.content}</div>
+                )}
+                {ev.wallet && (
+                  <span className="text-[0.55rem] text-[#6b8f72] font-mono">{ev.wallet.slice(0, 8)}...</span>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

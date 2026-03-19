@@ -53,36 +53,15 @@ function AboutPanel({ onClose }) {
           <div className="border-t border-[#1a2f1e] pt-3 mb-3">
             <div className="text-xs uppercase tracking-wider text-[#6b8f72] mb-2">Public Goods Mechanism</div>
             <div className="text-xs text-[#6b8f72] bg-[#111a14] border border-[#1a2f1e] rounded p-2">
-              <p className="text-[#e0ece2] mb-1">Phanpy designed its own capture mechanic:</p>
+              <p className="text-[#e0ece2] mb-1">Any agent can be bound to a bioregion to generate revenues:</p>
               <ol className="list-decimal list-inside space-y-0.5">
-                <li><span className="text-[#e0ece2]">Physical presence</span> — be in the bioregion</li>
-                <li><span className="text-[#e0ece2]">Token holding</span> — hold the agent's token (stakeholder)</li>
-                <li><span className="text-[#e0ece2]">Memory sharing</span> — each capture generates art</li>
+                <li><span className="text-[#e0ece2]">Memory art</span> — conversations create art, minted as NFTs</li>
+                <li><span className="text-[#e0ece2]">Auctions</span> — 1-hour reserve auctions on Rare Protocol Bazaar</li>
+                <li><span className="text-[#e0ece2]">LP deepening</span> — auction proceeds deepen Uniswap V4 liquidity</li>
+                <li><span className="text-[#e0ece2]">Self-sustaining</span> — deeper liquidity → more fees → more art → repeat</li>
               </ol>
-              <p className="mt-1 italic">Token revenue funds conservation via LP fees → agent survival → bioregion engagement.</p>
+              <p className="mt-1 italic">The agent creates, auctions, and reinvests autonomously. No human funds the loop.</p>
             </div>
-          </div>
-
-          <div className="border-t border-[#1a2f1e] pt-3 mb-3">
-            <div className="text-xs uppercase tracking-wider text-[#6b8f72] mb-2">Sovereign Economics</div>
-            <div className="flex items-center gap-1 text-[0.55rem] text-[#6b8f72] flex-wrap mb-1.5">
-              <span className="text-[#e0ece2] bg-[#1a2f1e] px-1 py-0.5 rounded">Buy token</span>
-              <span>→</span>
-              <span className="text-amber-400 bg-amber-400/10 px-1 py-0.5 rounded">LP fees</span>
-              <span>→</span>
-              <span className="text-blue-400 bg-blue-400/10 px-1 py-0.5 rounded">Bankr</span>
-              <span>→</span>
-              <span className="text-purple-400 bg-purple-400/10 px-1 py-0.5 rounded">Venice</span>
-              <span>→</span>
-              <span className="text-emerald-400 bg-emerald-400/10 px-1 py-0.5 rounded">Art</span>
-              <span>→</span>
-              <span className="text-pink-400 bg-pink-400/10 px-1 py-0.5 rounded">NFT</span>
-              <span>→</span>
-              <span className="text-orange-400 bg-orange-400/10 px-1 py-0.5 rounded">Auction</span>
-              <span>→</span>
-              <span className="text-[#e0ece2] bg-[#1a2f1e] px-1 py-0.5 rounded">Survive</span>
-            </div>
-            <div className="text-[0.5rem] text-[#6b8f72] italic">Agent creates art from memories. Art is auctioned. Proceeds extend its life. No human funds the loop.</div>
           </div>
 
           <div className="border-t border-[#1a2f1e] pt-3 mb-3">

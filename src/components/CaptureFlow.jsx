@@ -5,6 +5,7 @@ import { getCurrentPosition, createLocationProof, formatCoordinates } from '../s
 import { findBioregionAtCoordinate } from '../services/bioregionService.js';
 import { checkTokenGate, TOKEN_GATE_INFO } from '../services/conservationService.js';
 import { submitCapture } from '../services/agentApi.js';
+import { checkNameAvailable, commitName, registerBasename, saveAgentName, MIN_COMMITMENT_AGE } from '../services/basenameService.js';
 
 function CaptureStep({ num, label, state, children }) {
   const colorMap = {
@@ -26,7 +27,7 @@ function CaptureStep({ num, label, state, children }) {
         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border ${colorMap[state] || colorMap.pending}`}>
           {state === 'verified' || state === 'acquired' || state === 'created' || state === 'success' ? '✓' : num}
         </div>
-        {num < 3 && <div className="w-px flex-1 bg-[#1a2f1e] mt-1 min-h-[16px]" />}
+        {num < 4 && <div className="w-px flex-1 bg-[#1a2f1e] mt-1 min-h-[16px]" />}
       </div>
       <div className="flex-1 pb-4">
         <div className="text-[0.65rem] uppercase tracking-wider text-[#6b8f72] mb-1">{label}</div>
@@ -40,10 +41,17 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
   // Demo mode only bypasses wallet checks (NFT + token gate). GPS, bioregion, and Astral proofs are ALWAYS real.
   const demoWallet = demoMode; // bypass NFT + token gate checks
   const demoLocation = false;  // NEVER fake GPS — we want real proofs
-  const [step, setStep] = useState(0); // 0-3 (4 steps)
+  const [step, setStep] = useState(0); // 0-4 (5 steps: token, gps, proof, naming, done)
   const [states, setStates] = useState({
-    conservation: 'pending', gps: 'pending', bioregion: 'pending', proof: 'pending'
+    conservation: 'pending', gps: 'pending', bioregion: 'pending', proof: 'pending', naming: 'pending'
   });
+  const [nameInput, setNameInput] = useState('');
+  const [nameCheck, setNameCheck] = useState(null);
+  const [nameStatus, setNameStatus] = useState('idle'); // idle | checking | committing | waiting | registering | success | skipped
+  const [nameError, setNameError] = useState(null);
+  const [nameTxHash, setNameTxHash] = useState(null);
+  const [nameSecret, setNameSecret] = useState(null);
+  const [countdown, setCountdown] = useState(0);
   const [tokenBalance, setTokenBalance] = useState(null);
   const [location, _setLocation] = useState(null);
   const locationRef = useRef(null);
@@ -143,7 +151,8 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
           astralProofHash: proofDataRef.current?.uid || ''
         });
         setStep(3);
-        setTimeout(() => onSuccess(result), 2000);
+        // Show naming step after brief capture celebration
+        setStates(s => ({ ...s, naming: 'pending' }));
       } catch (e) {
         setStates(s => ({ ...s, proof: 'failed' }));
         setError(e.message);
@@ -162,7 +171,7 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
             </div>
             <div>
               <div className="text-sm font-bold text-[#e0ece2]">CAPTURING: {agent.pokemon}</div>
-              <div className="text-[0.65rem] text-[#6b8f72]">Step {Math.min(step + 1, 3)} of 3</div>
+              <div className="text-[0.65rem] text-[#6b8f72]">Step {Math.min(step + 1, 4)} of 4</div>
             </div>
           </div>
           <button onClick={onCancel} className="text-[#6b8f72] hover:text-[#e0ece2] text-xl">✕</button>
@@ -244,11 +253,7 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
                     )}
                   </div>
                 )}
-                <div className="text-center py-4">
-                  <div className="text-3xl font-black text-[#e0ece2] animate-bounce">CAPTURED!</div>
-                  <div className="mt-2 text-[#6b8f72]">{agent.pokemon} is now yours.</div>
-                  <div className="mt-3"><StatusPill status="captured" /></div>
-                </div>
+                <div className="text-emerald-400 text-sm font-medium">Captured! Now name your agent below.</div>
               </div>
             )}
             {states.proof === 'failed' && (
@@ -256,6 +261,161 @@ export default function CaptureFlow({ agent, walletAddress, onSuccess, onCancel,
                 <span className="text-red-400">{error}</span>
                 <button onClick={() => executeStep(2)} className="text-emerald-400 ml-2 hover:underline">Retry</button>
               </div>
+            )}
+          </CaptureStep>
+
+          <CaptureStep num={4} label="Name Your Agent (Basename)" state={nameStatus === 'success' || nameStatus === 'skipped' ? 'success' : nameStatus === 'committing' || nameStatus === 'waiting' || nameStatus === 'registering' ? 'checking' : states.proof === 'created' ? 'pending' : 'pending'}>
+            {states.proof === 'created' && !['success', 'skipped', 'committing', 'waiting', 'registering'].includes(nameStatus) && (
+              <div>
+                <div className="text-xs text-[#6b8f72] mb-2">
+                  Register a <span className="text-[#e0ece2]">.base.eth</span> name for {agent.pokemon}. The name becomes its onchain identity.
+                </div>
+                <div className="flex items-center gap-2 mb-2">
+                  <input
+                    type="text"
+                    value={nameInput}
+                    onChange={async (e) => {
+                      const val = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+                      setNameInput(val);
+                      setNameCheck(null);
+                      setNameError(null);
+                      if (val.length >= 3) {
+                        setNameStatus('checking');
+                        try {
+                          const result = await checkNameAvailable(val);
+                          setNameCheck(result);
+                          setNameStatus('idle');
+                        } catch (err) {
+                          setNameError(err.message);
+                          setNameStatus('idle');
+                        }
+                      } else {
+                        setNameStatus('idle');
+                      }
+                    }}
+                    placeholder={agent.pokemon?.toLowerCase() || 'agent-name'}
+                    className="flex-1 bg-[#111a14] border border-[#1a2f1e] rounded-lg px-3 py-2 text-sm font-mono text-[#e0ece2] outline-none focus:border-emerald-500/50 transition-colors"
+                  />
+                  <span className="text-xs text-[#6b8f72] font-mono">.base.eth</span>
+                </div>
+
+                {nameStatus === 'checking' && (
+                  <div className="text-xs text-[#6b8f72] animate-pulse">Checking availability...</div>
+                )}
+                {nameCheck && nameCheck.available && (
+                  <div className="text-xs text-emerald-400 mb-2">
+                    {nameCheck.fullName} is available — {nameCheck.price} ETH/year
+                  </div>
+                )}
+                {nameCheck && !nameCheck.available && (
+                  <div className="text-xs text-red-400 mb-2">{nameCheck.reason}</div>
+                )}
+                {nameError && (
+                  <div className="text-xs text-red-400 mb-2">{nameError}</div>
+                )}
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={async () => {
+                      if (!nameCheck?.available || !nameInput) return;
+                      setNameStatus('committing');
+                      setNameError(null);
+                      try {
+                        // Step 1: Commit (prevents frontrunning)
+                        const commitResult = await commitName(nameInput, agent.wallet_address);
+                        setNameSecret(commitResult.secret);
+                        // Step 2: 60-second countdown
+                        setNameStatus('waiting');
+                        setCountdown(MIN_COMMITMENT_AGE);
+                        const timer = setInterval(() => {
+                          setCountdown(c => {
+                            if (c <= 1) {
+                              clearInterval(timer);
+                              // Step 3: Auto-register after countdown
+                              setNameStatus('registering');
+                              registerBasename(nameInput, agent.wallet_address, commitResult.secret)
+                                .then(async (result) => {
+                                  setNameTxHash(result.txHash);
+                                  await saveAgentName(agent.id, result.fullName, result.txHash, walletAddress);
+                                  setNameStatus('success');
+                                  setStates(s => ({ ...s, naming: 'verified' }));
+                                  setTimeout(() => onSuccess({ named: result.fullName }), 2000);
+                                })
+                                .catch(err => {
+                                  setNameError(err.reason || err.shortMessage || err.message);
+                                  setNameStatus('idle');
+                                });
+                              return 0;
+                            }
+                            return c - 1;
+                          });
+                        }, 1000);
+                      } catch (err) {
+                        setNameError(err.reason || err.shortMessage || err.message);
+                        setNameStatus('idle');
+                      }
+                    }}
+                    disabled={!nameCheck?.available}
+                    className="flex-1 py-2 rounded-lg text-sm font-bold transition-all bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30 disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    Register {nameInput || '...'}.base.eth
+                  </button>
+                  <button
+                    onClick={() => {
+                      setNameStatus('skipped');
+                      setStates(s => ({ ...s, naming: 'verified' }));
+                      setTimeout(() => onSuccess({}), 1000);
+                    }}
+                    className="py-2 px-3 rounded-lg text-sm text-[#6b8f72] hover:text-[#e0ece2] transition-colors"
+                  >
+                    Skip
+                  </button>
+                </div>
+                <div className="text-[0.5rem] text-[#6b8f72] mt-2">
+                  ~0.001 ETH for 5-9 chars · two transactions (commit + register) · 60s wait between
+                </div>
+              </div>
+            )}
+            {nameStatus === 'committing' && (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-t-transparent border-sky-400 rounded-full animate-spin" />
+                <span className="text-sm text-[#6b8f72]">Committing name reservation...</span>
+              </div>
+            )}
+            {nameStatus === 'waiting' && (
+              <div>
+                <div className="text-sm text-[#e0ece2] mb-2">Name committed. Waiting for reveal window...</div>
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 bg-[#111a14] rounded-full h-2 overflow-hidden">
+                    <div
+                      className="h-full bg-sky-400 transition-all duration-1000"
+                      style={{ width: `${((MIN_COMMITMENT_AGE - countdown) / MIN_COMMITMENT_AGE) * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-sm font-mono text-sky-400 w-8 text-right">{countdown}s</span>
+                </div>
+                <div className="text-[0.5rem] text-[#6b8f72] mt-1">Anti-frontrunning protection — your name is secured</div>
+              </div>
+            )}
+            {nameStatus === 'registering' && (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-t-transparent border-emerald-400 rounded-full animate-spin" />
+                <span className="text-sm text-[#6b8f72]">Registering {nameInput}.base.eth — confirm in wallet...</span>
+              </div>
+            )}
+            {nameStatus === 'success' && (
+              <div className="text-center py-3">
+                <div className="text-2xl font-black text-[#e0ece2]">{nameInput}.base.eth</div>
+                <div className="text-sm text-emerald-400 mt-1">{agent.pokemon} has a name!</div>
+                {nameTxHash && (
+                  <a href={`https://basescan.org/tx/${nameTxHash}`} target="_blank" rel="noreferrer" className="text-[0.65rem] text-[#6b8f72] hover:text-emerald-400 font-mono">
+                    {nameTxHash.slice(0, 14)}... ↗
+                  </a>
+                )}
+              </div>
+            )}
+            {nameStatus === 'skipped' && (
+              <div className="text-sm text-[#6b8f72]">Skipped — you can name it later.</div>
             )}
           </CaptureStep>
         </div>

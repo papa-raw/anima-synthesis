@@ -1,6 +1,8 @@
 import { getEthBalance, getClaimableFees, claimFees, getEthPrice, getWethBalance, getTokenHolderCount } from './clankerService.js';
 import { logAgentEvent } from './agentLogger.js';
 import { pinToIpfs } from './ipfsService.js';
+import { getAuctionState, settleAuction } from './auctionService.js';
+import { deepenLiquidity } from './lpService.js';
 
 const TICK_INTERVAL = 30 * 60 * 1000; // 30 minutes
 const GAS_COST = 0.0001; // ~$0.006 on Base
@@ -78,7 +80,14 @@ async function runAgentTick(agent, db) {
     action = 'error';
   }
 
-  // 7. Record heartbeat (always, even on error)
+  // 7. Auto-settle auctions + LP deepen
+  try {
+    await processAuctions(agent, db);
+  } catch (e) {
+    console.error(`[${agent.id}] Auction processing failed:`, e.message);
+  }
+
+  // 8. Record heartbeat (always, even on error)
   let ipfsCid = null;
   try {
     ipfsCid = await pinToIpfs({ agentId: agent.id, action, ethBalance, claimable, runwayDays, timestamp: Date.now() });
@@ -89,7 +98,7 @@ async function runAgentTick(agent, db) {
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `).run(agent.id, ethBalance, claimable, runwayDays, action, txHash, ipfsCid);
 
-  // 8. Check WETH earned + holder count
+  // 9. Check WETH earned + holder count
   let wethBalance = 0;
   let holderCount = 0;
   try {
@@ -97,11 +106,80 @@ async function runAgentTick(agent, db) {
     if (agent.token_address) holderCount = await getTokenHolderCount(agent.token_address);
   } catch { /* non-critical */ }
 
-  // 9. Update agent record
+  // 10. Update agent record
   db.prepare(`UPDATE agents SET eth_balance = ?, weth_earned_total = ?, runway_days = ?, holder_count = ?, last_heartbeat = datetime('now')
     WHERE id = ?`).run(ethBalance, wethBalance, runwayDays, holderCount, agent.id);
 
   console.log(`[${agent.id}] ${action} | ETH: ${ethBalance.toFixed(6)} | WETH: ${wethBalance.toFixed(6)} | Holders: ${holderCount} | Runway: ${runwayDays.toFixed(1)}d`);
 
   logAgentEvent(agent.id, action, { ethBalance, wethBalance, claimable, runwayDays, holderCount, txHash });
+}
+
+/**
+ * Process pending auctions: check state, settle if ended, deepen LP with proceeds
+ */
+async function processAuctions(agent, db) {
+  const memories = db.prepare(
+    `SELECT id, nft_token_id, nft_contract, auction_status
+     FROM agent_memories
+     WHERE agent_id = ? AND nft_token_id IS NOT NULL AND auction_status IS NOT NULL AND auction_status NOT IN ('settled', 'expired')
+     ORDER BY created_at DESC LIMIT 20`
+  ).all(agent.id);
+
+  if (memories.length === 0) return;
+
+  for (const mem of memories) {
+    try {
+      const state = await getAuctionState(mem.nft_contract, mem.nft_token_id);
+
+      if (state.status === 'ended' && state.currentBidder) {
+        // Auction ended with a bid — settle it
+        const balanceBefore = await getEthBalance(agent.wallet_address);
+        const settleTx = await settleAuction(agent.id, mem.nft_contract, mem.nft_token_id);
+        const balanceAfter = await getEthBalance(agent.wallet_address);
+        const proceeds = balanceAfter - balanceBefore;
+
+        db.prepare(
+          'UPDATE agent_memories SET auction_status = ?, auction_settle_tx = ?, auction_settled_at = datetime(\'now\') WHERE id = ?'
+        ).run('settled', settleTx, mem.id);
+
+        console.log(`[${agent.id}] Auction settled: NFT #${mem.nft_token_id} → ${proceeds.toFixed(6)} ETH`);
+
+        // Log the settlement
+        logAgentEvent(agent.id, 'auction_settle', {
+          nftTokenId: mem.nft_token_id,
+          proceeds,
+          settleTx,
+          buyer: state.currentBidder
+        });
+
+        // LP deepen with proceeds
+        if (proceeds > 0.0002 && agent.token_address) {
+          try {
+            const lpResult = await deepenLiquidity(agent.id, proceeds, agent.token_address);
+            if (lpResult?.mintTx) {
+              logAgentEvent(agent.id, 'lp_deepen', {
+                ethAmount: proceeds,
+                mintTx: lpResult.mintTx,
+                tokenAddress: agent.token_address
+              });
+              console.log(`[${agent.id}] LP deepened with ${proceeds.toFixed(6)} ETH`);
+            }
+          } catch (e) {
+            console.error(`[${agent.id}] LP deepen failed:`, e.message);
+          }
+        }
+      } else if (state.status === 'expired') {
+        // Ended with no bids
+        db.prepare('UPDATE agent_memories SET auction_status = ? WHERE id = ?').run('expired', mem.id);
+        console.log(`[${agent.id}] Auction expired: NFT #${mem.nft_token_id}`);
+      } else if (state.status === 'live' && mem.auction_status !== 'live') {
+        // First bid received — clock started
+        db.prepare('UPDATE agent_memories SET auction_status = ? WHERE id = ?').run('live', mem.id);
+        console.log(`[${agent.id}] Auction live: NFT #${mem.nft_token_id} (${state.currentBid} ETH)`);
+      }
+    } catch (e) {
+      console.error(`[${agent.id}] Auction check failed for #${mem.nft_token_id}:`, e.message);
+    }
+  }
 }
