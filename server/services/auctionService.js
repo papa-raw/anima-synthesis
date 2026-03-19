@@ -67,6 +67,7 @@ const BAZAAR_ABI = [
       { name: '_startingAmount', type: 'uint256' },
       { name: '_currencyAddress', type: 'address' },
       { name: '_lengthOfAuction', type: 'uint256' },
+      { name: '_startTime', type: 'uint256' },
       { name: '_splitAddresses', type: 'address[]' },
       { name: '_splitRatios', type: 'uint8[]' }
     ],
@@ -174,6 +175,7 @@ export async function createAuction(agentId, nftContract, tokenId, opts = {}) {
       startingPrice,
       ZERO_ADDRESS, // ETH
       BigInt(duration),
+      0n, // startTime = 0 → reserve auction (clock starts on first bid)
       [account.address], // 100% to agent
       [100]
     ]

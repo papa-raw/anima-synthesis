@@ -91,13 +91,14 @@ describe('auctionService', () => {
       const call = mockWriteContract.mock.calls[0][0];
       expect(call.address).toBe(BAZAAR);
       expect(call.functionName).toBe('configureAuction');
-      // args: [auctionType, nftContract, tokenId, startingAmount, currency, duration, splitAddrs, splitRatios]
+      // args: [auctionType, nftContract, tokenId, startingAmount, currency, duration, startTime, splitAddrs, splitRatios]
       expect(call.args[1]).toBe(NFT_CONTRACT); // origin contract
       expect(call.args[2]).toBe(42n); // token ID
       expect(call.args[4]).toBe(ZERO); // ETH currency
       expect(call.args[5]).toBe(3600n); // 1 hour
-      expect(call.args[6]).toEqual(['0xAgentWallet']); // 100% to agent
-      expect(call.args[7]).toEqual([100]); // full split
+      expect(call.args[6]).toBe(0n); // startTime = 0 (reserve)
+      expect(call.args[7]).toEqual(['0xAgentWallet']); // 100% to agent
+      expect(call.args[8]).toEqual([100]); // full split
     });
 
     it('defaults to 1hr and 0.0001 ETH', async () => {
@@ -106,7 +107,8 @@ describe('auctionService', () => {
       await createAuction('agent-phanpy', NFT_CONTRACT, '1');
 
       const call = mockWriteContract.mock.calls[0][0];
-      expect(call.args[5]).toBe(3600n);
+      expect(call.args[5]).toBe(3600n); // duration
+      expect(call.args[6]).toBe(0n); // startTime
       // 0.0001 ETH = 100000000000000 wei
       expect(call.args[3]).toBe(BigInt(Math.floor(0.0001 * 1e18)));
     });
