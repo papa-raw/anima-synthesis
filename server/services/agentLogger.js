@@ -13,14 +13,16 @@ const LOG_PATH = join(__dirname, '../../agent_log.json');
 
 function getLog() {
   try {
-    return JSON.parse(readFileSync(LOG_PATH, 'utf8'));
+    const log = JSON.parse(readFileSync(LOG_PATH, 'utf8'));
+    // Ensure events array exists (file may have sessions from ERC-8004 format)
+    if (!Array.isArray(log.events)) log.events = [];
+    return log;
   } catch {
-    return { "$schema": "https://erc8004.org/schema/agent_log.json", agentName: "Anima", events: [] };
+    return { "$schema": "https://erc8004.org/schema/agent_log.json", agentName: "Anima", sessions: [], events: [] };
   }
 }
 
 function saveLog(log) {
-  // Keep last 200 events to prevent unbounded growth
   if (log.events.length > 200) {
     log.events = log.events.slice(-200);
   }
@@ -44,7 +46,6 @@ export function logAgentEvent(agentId, type, data = {}) {
     });
     saveLog(log);
   } catch (e) {
-    // Logging should never break the app
     console.warn('Agent log write failed:', e.message);
   }
 }
