@@ -174,7 +174,7 @@ export async function createAuction(agentId, nftContract, tokenId, opts = {}) {
       nftContract,
       BigInt(tokenId),
       startingPrice,
-      WETH_BASE, // WETH on Base (Bazaar requires ERC-20, not native ETH)
+      ZERO_ADDRESS, // Native ETH — Bazaar on Base only supports ETH, not WETH
       BigInt(duration),
       0n, // startTime = 0 → reserve auction (clock starts on first bid)
       [account.address], // 100% to agent
