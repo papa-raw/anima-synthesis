@@ -145,7 +145,11 @@ async function processAuctions(agent, db) {
 
         console.log(`[${agent.id}] Auction settled: NFT #${mem.nft_token_id} → ${proceeds.toFixed(6)} ETH`);
 
-        // Log the settlement
+        // Log settlement in heartbeats (appears in History tab) + agent_log
+        db.prepare(
+          'INSERT INTO agent_heartbeats (agent_id, action, tx_hash, eth_balance) VALUES (?, ?, ?, ?)'
+        ).run(agent.id, 'auction_settle', settleTx, proceeds);
+
         logAgentEvent(agent.id, 'auction_settle', {
           nftTokenId: mem.nft_token_id,
           proceeds,
@@ -158,6 +162,11 @@ async function processAuctions(agent, db) {
           try {
             const lpResult = await deepenLiquidity(agent.id, proceeds, agent.token_address);
             if (lpResult?.mintTx) {
+              // Log LP deepen in heartbeats (appears in History tab)
+              db.prepare(
+                'INSERT INTO agent_heartbeats (agent_id, action, tx_hash, eth_balance) VALUES (?, ?, ?, ?)'
+              ).run(agent.id, 'lp_deepen', lpResult.mintTx, proceeds);
+
               logAgentEvent(agent.id, 'lp_deepen', {
                 ethAmount: proceeds,
                 mintTx: lpResult.mintTx,

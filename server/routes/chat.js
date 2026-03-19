@@ -72,12 +72,8 @@ router.post('/', async (req, res) => {
     } catch {
       response = await devInference(systemPrompt, userPrompt);
     }
-    // If response looks truncated (ends mid-word), retry with Venice direct
-    if (response && response.length > 10 && !response.match(/[.!?*)\]"']$/)) {
-      try {
-        response = await devInference(systemPrompt, userPrompt);
-      } catch { /* keep truncated response */ }
-    }
+    // Bankr response is authoritative — no Venice fallback for truncation
+    // (was burning Venice credits on every chat even when Bankr succeeded)
 
     const trimmed = response.trim();
 
