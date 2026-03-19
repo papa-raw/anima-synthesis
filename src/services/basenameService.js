@@ -8,7 +8,8 @@
  * Cost: 0.001 ETH for 5-9 char names, 0.0001 ETH for 10+ chars
  */
 
-const REGISTRAR_CONTROLLER = '0x4cCb0BB02FCABA27e82a56646E81d8c5bC4119a5';
+// Upgradeable controller (active) — legacy 0x4cCb...a5 was de-authorized (OnlyController revert)
+const REGISTRAR_CONTROLLER = '0xa7d2607c6BD39Ae9521e514026CBB078405Ab322';
 const L2_RESOLVER = '0xC6d566A56A1aFf6508b41f6c90ff131615583BCD';
 
 // Basenames RegistrarController ABI — no commit/reveal, just register(struct)
