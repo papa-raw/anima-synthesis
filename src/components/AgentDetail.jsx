@@ -1008,14 +1008,14 @@ function AuctionBadge({ memory, walletAddress, onBid }) {
 
   if (status === 'settled') {
     return (
-      <span className="absolute top-1 right-1 bg-emerald-500/20 text-emerald-400 text-[0.55rem] px-1.5 py-0.5 rounded border border-emerald-500/30">
+      <span className="absolute top-2 right-2 bg-emerald-600 text-white text-xs font-bold px-2.5 py-1 rounded-md shadow-lg">
         Sold
       </span>
     );
   }
   if (status === 'ended' || (timeLeft !== null && timeLeft <= 0)) {
     return (
-      <span className="absolute top-1 right-1 bg-amber-500/20 text-amber-400 text-[0.55rem] px-1.5 py-0.5 rounded border border-amber-500/30">
+      <span className="absolute top-2 right-2 bg-amber-600 text-white text-xs font-bold px-2.5 py-1 rounded-md shadow-lg">
         Ended
       </span>
     );
@@ -1025,7 +1025,7 @@ function AuctionBadge({ memory, walletAddress, onBid }) {
     return (
       <button
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); onBid(); }}
-        className="absolute top-1 right-1 bg-orange-500/20 text-orange-400 text-[0.55rem] px-1.5 py-0.5 rounded border border-orange-500/30 hover:bg-orange-500/30 transition-colors cursor-pointer animate-pulse"
+        className="absolute top-2 right-2 bg-orange-500 text-white text-xs font-bold px-2.5 py-1 rounded-md shadow-lg hover:bg-orange-600 transition-colors cursor-pointer animate-pulse"
       >
         {formatTime(timeLeft)} left
       </button>
@@ -1036,7 +1036,7 @@ function AuctionBadge({ memory, walletAddress, onBid }) {
     return (
       <button
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); onBid(); }}
-        className="absolute top-1 right-1 bg-orange-500/20 text-orange-400 text-[0.55rem] px-1.5 py-0.5 rounded border border-orange-500/30 hover:bg-orange-500/30 transition-colors cursor-pointer"
+        className="absolute top-2 right-2 bg-orange-500 text-white text-xs font-bold px-2.5 py-1 rounded-md shadow-lg hover:bg-orange-600 transition-colors cursor-pointer"
       >
         Bid
       </button>
@@ -1047,7 +1047,7 @@ function AuctionBadge({ memory, walletAddress, onBid }) {
     return (
       <button
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); onBid(); }}
-        className="absolute top-1 right-1 bg-orange-500/20 text-orange-400 text-[0.55rem] px-1.5 py-0.5 rounded border border-orange-500/30 hover:bg-orange-500/30 transition-colors cursor-pointer"
+        className="absolute top-2 right-2 bg-orange-500 text-white text-xs font-bold px-2.5 py-1 rounded-md shadow-lg hover:bg-orange-600 transition-colors cursor-pointer"
       >
         Bid
       </button>
@@ -1057,7 +1057,7 @@ function AuctionBadge({ memory, walletAddress, onBid }) {
     <a
       href={`https://basescan.org/nft/${memory.nft_contract}/${memory.nft_token_id}`}
       target="_blank" rel="noopener noreferrer"
-      className="absolute top-1 right-1 bg-emerald-500/20 text-emerald-400 text-[0.55rem] px-1.5 py-0.5 rounded border border-emerald-500/30 hover:bg-emerald-500/30 transition-colors"
+      className="absolute top-2 right-2 bg-emerald-600 text-white text-xs font-bold px-2.5 py-1 rounded-md shadow-lg hover:bg-emerald-700 transition-colors"
     >
       NFT ↗
     </a>
