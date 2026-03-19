@@ -45,7 +45,9 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
   const [tab, setTab] = useState('info');
   const [tokenGate, setTokenGate] = useState(null);
   const [chatMessages, setChatMessages] = useState(null);
-  const [memoryForming, setMemoryForming] = useState(false); // shared between Soul + Art tabs
+  const [memoryForming, setMemoryForming] = useState(false);
+  const [releaseState, setReleaseState] = useState('idle'); // idle | confirming | releasing | done | error
+  const [releaseError, setReleaseError] = useState(null);
 
   useEffect(() => {
     if (!walletAddress) { setTokenGate(null); return; }
@@ -65,7 +67,7 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
       <div className="fixed inset-0 z-30" onClick={onClose} />
 
       {/* Panel — fits between header (48px) and dock (80px) */}
-      <div className="fixed top-12 right-0 z-40 bottom-20 w-[520px] bg-[#0a0f0a] border-l border-[#1a2f1e] flex flex-col transition-transform duration-300">
+      <div className="fixed top-12 right-0 z-40 bottom-20 w-full sm:w-[520px] bg-[#0a0f0a] border-l border-[#1a2f1e] flex flex-col transition-transform duration-300">
         {/* Compact header: card thumbnail + name + stats inline */}
         <div className="flex items-center gap-3 p-3 border-b border-[#1a2f1e]">
           {/* Card thumbnail */}
@@ -366,59 +368,80 @@ export default function AgentDetail({ agent, onCapture, onClose, walletHasMatchi
               Connect Wallet to Capture
             </button>
           ) : agent.status === 'captured' && walletAddress && agent.captured_by?.toLowerCase() === walletAddress.toLowerCase() ? (
-            <button
-              onClick={async () => {
-                if (!confirm('Release this agent back into the wild? The Beezie NFT will transfer back to the agent.')) return;
-                try {
-                  // Get user's GPS for release bioregion
-                  let lat = null, lng = null;
-                  try {
-                    const pos = await new Promise((resolve, reject) =>
-                      navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 })
-                    );
-                    lat = pos.coords.latitude;
-                    lng = pos.coords.longitude;
-                  } catch { /* GPS optional for release */ }
+            <div className="space-y-2">
+              {releaseState === 'idle' && (
+                <button
+                  onClick={() => setReleaseState('confirming')}
+                  className="w-full py-2.5 rounded-lg font-bold text-sm text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 transition-all"
+                >
+                  RELEASE INTO THE WILD
+                </button>
+              )}
+              {releaseState === 'confirming' && (
+                <div className="bg-[#111a14] border border-emerald-500/20 rounded-lg p-3">
+                  <div className="text-xs text-[#e0ece2] mb-2">Release {agent.pokemon} back into the wild? The Beezie NFT will transfer back to the agent.</div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={async () => {
+                        setReleaseState('releasing');
+                        setReleaseError(null);
+                        try {
+                          let lat = null, lng = null;
+                          try {
+                            const pos = await new Promise((resolve, reject) =>
+                              navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 })
+                            );
+                            lat = pos.coords.latitude;
+                            lng = pos.coords.longitude;
+                          } catch { /* GPS optional */ }
 
-                  // Transfer NFT back to agent via user's wallet
-                  let nftTxHash = null;
-                  if (window.ethereum && agent.beezieTokenId && agent.wallet_address) {
-                    const { ethers } = await import('ethers');
-                    const provider = new ethers.BrowserProvider(window.ethereum);
-                    const signer = await provider.getSigner();
-                    const nft = new ethers.Contract(
-                      '0xbb5ec6fd4b61723bd45c399840f1d868840ca16f',
-                      ['function transferFrom(address from, address to, uint256 tokenId)'],
-                      signer
-                    );
-                    const tx = await nft.transferFrom(walletAddress, agent.wallet_address, agent.beezieTokenId);
-                    await tx.wait();
-                    nftTxHash = tx.hash;
-                  }
+                          let nftTxHash = null;
+                          if (window.ethereum && agent.beezieTokenId && agent.wallet_address) {
+                            const { ethers } = await import('ethers');
+                            const provider = new ethers.BrowserProvider(window.ethereum);
+                            const signer = await provider.getSigner();
+                            const nft = new ethers.Contract(
+                              '0xbb5ec6fd4b61723bd45c399840f1d868840ca16f',
+                              ['function transferFrom(address from, address to, uint256 tokenId)'],
+                              signer
+                            );
+                            const tx = await nft.transferFrom(walletAddress, agent.wallet_address, agent.beezieTokenId);
+                            await tx.wait();
+                            nftTxHash = tx.hash;
+                          }
 
-                  // Notify server
-                  const res = await fetch('/api/capture/release', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      agentId: agent.id,
-                      releaserWallet: walletAddress,
-                      latitude: lat,
-                      longitude: lng,
-                      nftTxHash
-                    })
-                  });
-                  if (!res.ok) throw new Error((await res.json()).error);
-                  alert('Released! The agent is wild again.');
-                  window.location.reload();
-                } catch (e) {
-                  alert('Release failed: ' + e.message);
-                }
-              }}
-              className="w-full py-2.5 rounded-lg font-bold text-sm text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 transition-all"
-            >
-              RELEASE INTO THE WILD
-            </button>
+                          const res = await fetch('/api/capture/release', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ agentId: agent.id, releaserWallet: walletAddress, latitude: lat, longitude: lng, nftTxHash })
+                          });
+                          if (!res.ok) throw new Error((await res.json()).error);
+                          setReleaseState('done');
+                          setTimeout(() => window.location.reload(), 2000);
+                        } catch (e) {
+                          setReleaseError(e.message);
+                          setReleaseState('confirming');
+                        }
+                      }}
+                      className="flex-1 py-2 rounded-lg text-sm font-bold text-emerald-400 bg-emerald-500/20 border border-emerald-500/30 hover:bg-emerald-500/30"
+                    >
+                      Confirm Release
+                    </button>
+                    <button onClick={() => setReleaseState('idle')} className="py-2 px-3 rounded-lg text-sm text-[#6b8f72] hover:text-[#e0ece2]">Cancel</button>
+                  </div>
+                  {releaseError && <div className="text-xs text-red-400 mt-2">{releaseError}</div>}
+                </div>
+              )}
+              {releaseState === 'releasing' && (
+                <div className="flex items-center justify-center gap-2 py-2.5">
+                  <div className="w-4 h-4 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin" />
+                  <span className="text-sm text-[#6b8f72]">Releasing...</span>
+                </div>
+              )}
+              {releaseState === 'done' && (
+                <div className="text-center py-2.5 text-emerald-400 font-bold text-sm">Released! {agent.pokemon} is wild again.</div>
+              )}
+            </div>
           ) : (
             <button
               onClick={onCapture}

@@ -129,6 +129,16 @@ app.get('/api/auction/:contract/:tokenId', async (req, res) => {
   }
 });
 
+// ERC-8004 compliance — serve agent manifest + execution log
+app.get('/agent.json', (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.sendFile(join(__dirname, '../agent.json'));
+});
+app.get('/.well-known/agent.json', (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.sendFile(join(__dirname, '../agent.json'));
+});
+
 // Serve generated art
 app.use('/art', express.static(join(__dirname, '../public/art')));
 
