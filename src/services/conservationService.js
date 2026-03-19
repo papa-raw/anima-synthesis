@@ -1,13 +1,13 @@
 /**
  * Token Gate Service — verify holder has agent's own token on Base
- * To capture an agent, you must hold ≥1M of that agent's ERC-20 token.
+ * To capture an agent, you must hold ≥10% of the token supply.
  * This creates a flywheel: buying tokens → LP fees → agent survives → creates art.
  */
 
 import { createPublicClient, http, formatUnits } from 'viem';
 import { base } from 'viem/chains';
 
-const MIN_TOKENS_REQUIRED = 1_000_000; // 1M tokens (0.1% of 1B supply)
+const MIN_TOKENS_REQUIRED = 100_000_000; // 100M tokens (10% of 1B supply)
 
 const publicClient = createPublicClient({
   chain: base,
@@ -74,6 +74,6 @@ export async function checkTokenGate(walletAddress, tokenAddress, tokenSymbol) {
 
 export const TOKEN_GATE_INFO = {
   required: MIN_TOKENS_REQUIRED,
-  requiredFormatted: '1M',
+  requiredFormatted: '100M (10%)',
   buyBaseUrl: 'https://clanker.world/clanker/'
 };

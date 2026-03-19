@@ -6,7 +6,7 @@
 import { createPublicClient, http, formatUnits } from 'viem';
 import { base } from 'viem/chains';
 
-const MIN_TOKENS_REQUIRED = 1_000_000; // 1M tokens
+const MIN_TOKENS_REQUIRED = 100_000_000; // 100M tokens (10% of 1B supply)
 const BEEZIE_CONTRACT = '0xbb5ec6fd4b61723bd45c399840f1d868840ca16f';
 
 const publicClient = createPublicClient({
