@@ -44,7 +44,7 @@ router.get('/:id/history', (req, res) => {
   const txHeartbeats = db.prepare(
     `SELECT id, action, tx_hash, eth_balance, weth_claimable, created_at
      FROM agent_heartbeats
-     WHERE agent_id = ? AND action IN ('fee_claim', 'survival_mode', 'death')
+     WHERE agent_id = ? AND action IN ('fee_claim', 'survival_mode', 'death', 'basename_register')
      ORDER BY created_at DESC LIMIT ?`
   ).all(req.params.id, limit);
 
@@ -99,8 +99,18 @@ router.get('/:id/history', (req, res) => {
     events.push({
       type: c.status === 'released' ? 'release' : 'capture',
       wallet: c.catcher_wallet,
-      proofHash: c.astral_proof_hash,
+      txHash: c.astral_proof_hash || null,
       timestamp: c.created_at,
+    });
+  }
+
+  // Genesis event — agent creation
+  const agent = db.prepare('SELECT created_at, pokemon FROM agents WHERE id = ?').get(req.params.id);
+  if (agent) {
+    events.push({
+      type: 'ensouled',
+      content: `${agent.pokemon} was ensouled`,
+      timestamp: agent.created_at,
     });
   }
 
@@ -128,6 +138,13 @@ router.post('/:id/set-name', (req, res) => {
   }
 
   db.prepare('UPDATE agents SET ens_name = ? WHERE id = ?').run(name, req.params.id);
+
+  // Record naming event in heartbeats for history timeline
+  if (txHash) {
+    db.prepare(
+      `INSERT INTO agent_heartbeats (agent_id, action, tx_hash, eth_balance) VALUES (?, 'basename_register', ?, 0)`
+    ).run(req.params.id, txHash);
+  }
 
   res.json({ named: true, name, txHash });
 });

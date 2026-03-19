@@ -1012,14 +1012,16 @@ function AuctionBadge({ memory, walletAddress, onBid }) {
 }
 
 const EVENT_CONFIG = {
-  fee_claim:      { icon: '💰', label: 'Fee Claim',       color: 'text-amber-400' },
-  survival_mode:  { icon: '🔴', label: 'Survival Claim',  color: 'text-red-400' },
-  nft_mint:       { icon: '🎨', label: 'NFT Minted',      color: 'text-pink-400' },
-  auction_settle: { icon: '🔨', label: 'Auction Settled', color: 'text-orange-400' },
-  lp_deepen:      { icon: '💧', label: 'LP Deepened',     color: 'text-blue-400' },
-  capture:        { icon: '⚡', label: 'Captured',         color: 'text-emerald-400' },
-  release:        { icon: '🌿', label: 'Released',         color: 'text-emerald-400' },
-  death:          { icon: '💀', label: 'Death',            color: 'text-red-500' },
+  fee_claim:          { icon: '💰', label: 'Fee Claim',         color: 'text-amber-400' },
+  survival_mode:      { icon: '🔴', label: 'Survival Claim',    color: 'text-red-400' },
+  nft_mint:           { icon: '🎨', label: 'NFT Minted',        color: 'text-pink-400' },
+  auction_settle:     { icon: '🔨', label: 'Auction Settled',   color: 'text-orange-400' },
+  lp_deepen:          { icon: '💧', label: 'LP Deepened',       color: 'text-blue-400' },
+  capture:            { icon: '⚡', label: 'Captured',           color: 'text-emerald-400' },
+  release:            { icon: '🌿', label: 'Released',           color: 'text-emerald-400' },
+  death:              { icon: '💀', label: 'Death',              color: 'text-red-500' },
+  basename_register:  { icon: '🏷️', label: 'Named',             color: 'text-sky-400' },
+  ensouled:           { icon: '✨', label: 'Ensouled',            color: 'text-purple-400' },
 };
 
 function HistoryTimeline({ agentId }) {
