@@ -143,8 +143,8 @@ describe('auctionService', () => {
           ['0xCreator'],
           [100]
         ])
-        // currentBidDetailsOfToken: no bids
-        .mockResolvedValueOnce([0n, ZERO]);
+        // auctionBids: no bids (bidder=zero)
+        .mockResolvedValueOnce([ZERO, ZERO, 0n, 0]);
 
       const state = await getAuctionState(NFT_CONTRACT, '1');
 
@@ -168,7 +168,7 @@ describe('auctionService', () => {
           ['0xCreator'],
           [100]
         ])
-        .mockResolvedValueOnce([BigInt(2e14), '0xBidder']); // has bid
+        .mockResolvedValueOnce(['0xBidder', ZERO, BigInt(2e14), 3]); // has bid
 
       const state = await getAuctionState(NFT_CONTRACT, '1');
 
@@ -191,7 +191,7 @@ describe('auctionService', () => {
           ['0xCreator'],
           [100]
         ])
-        .mockResolvedValueOnce([BigInt(5e14), '0xWinner']); // winning bid
+        .mockResolvedValueOnce(['0xWinner', ZERO, BigInt(5e14), 3]); // winning bid
 
       const state = await getAuctionState(NFT_CONTRACT, '1');
 
@@ -213,7 +213,7 @@ describe('auctionService', () => {
           ['0xCreator'],
           [100]
         ])
-        .mockResolvedValueOnce([0n, ZERO]); // no bids
+        .mockResolvedValueOnce([ZERO, ZERO, 0n, 0]); // no bids
 
       const state = await getAuctionState(NFT_CONTRACT, '1');
 

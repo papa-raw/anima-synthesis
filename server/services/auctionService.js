@@ -112,10 +112,12 @@ const BAZAAR_ABI = [
       { name: '_originContract', type: 'address' },
       { name: '_tokenId', type: 'uint256' }
     ],
-    name: 'currentBidDetailsOfToken',
+    name: 'auctionBids',
     outputs: [
+      { name: 'bidder', type: 'address' },
+      { name: 'currencyAddress', type: 'address' },
       { name: 'amount', type: 'uint256' },
-      { name: 'bidder', type: 'address' }
+      { name: 'marketplaceFee', type: 'uint8' }
     ],
     stateMutability: 'view',
     type: 'function'
@@ -210,18 +212,18 @@ export async function getAuctionState(nftContract, tokenId) {
       return { status: 'none', active: false };
     }
 
-    // Call 2: Current bid state (separate from config)
+    // Call 2: Current bid state via auctionBids (returns bidder, currency, amount, fee)
     let currentBidAmount = 0n;
     let currentBidder = ZERO_ADDRESS;
     try {
       const bidDetails = await publicClient.readContract({
         address: BAZAAR_ADDRESS,
         abi: BAZAAR_ABI,
-        functionName: 'currentBidDetailsOfToken',
+        functionName: 'auctionBids',
         args: [nftContract, tokenIdBig]
       });
-      currentBidAmount = bidDetails[0];
-      currentBidder = bidDetails[1];
+      currentBidder = bidDetails[0];   // address bidder
+      currentBidAmount = bidDetails[2]; // uint256 amount
     } catch { /* no bid yet */ }
 
     const startTimeNum = Number(startTime);

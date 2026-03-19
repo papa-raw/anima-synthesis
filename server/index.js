@@ -67,10 +67,12 @@ const BAZAAR_ABI = [
   },
   {
     inputs: [{ name: '_originContract', type: 'address' }, { name: '_tokenId', type: 'uint256' }],
-    name: 'currentBidDetailsOfToken',
+    name: 'auctionBids',
     outputs: [
+      { name: 'bidder', type: 'address' },
+      { name: 'currencyAddress', type: 'address' },
       { name: 'amount', type: 'uint256' },
-      { name: 'bidder', type: 'address' }
+      { name: 'marketplaceFee', type: 'uint8' }
     ],
     stateMutability: 'view',
     type: 'function'
@@ -94,11 +96,13 @@ app.get('/api/auction/:contract/:tokenId', async (req, res) => {
     let currentBid = '0', currentBidder = null;
     try {
       const bidDetails = await auctionClient.readContract({
-        address: BAZAAR, abi: BAZAAR_ABI, functionName: 'currentBidDetailsOfToken',
+        address: BAZAAR, abi: BAZAAR_ABI, functionName: 'auctionBids',
         args: [contract, BigInt(tokenId)]
       });
-      currentBid = formatEther(bidDetails[0]);
-      if (bidDetails[1] !== '0x0000000000000000000000000000000000000000') currentBidder = bidDetails[1];
+      if (bidDetails[0] !== '0x0000000000000000000000000000000000000000') {
+        currentBidder = bidDetails[0];  // address bidder
+        currentBid = formatEther(bidDetails[2]); // uint256 amount
+      }
     } catch { /* no bid yet */ }
 
     const startNum = Number(startTime);
