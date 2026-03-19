@@ -2,22 +2,24 @@
  * Basename Service — ENS naming on Base via Basenames
  *
  * After capture, the catcher registers a .base.eth name for the agent.
- * Single register() call — NO commit-reveal on L2.
+ * Single register() call on UpgradeableRegistrarController.
  *
- * RegistrarController (Base mainnet): 0x4cCb0BB02FCABA27e82a56646E81d8c5bC4119a5
- * Cost: 0.001 ETH for 5-9 char names, 0.0001 ETH for 10+ chars
+ * Active controller (Base mainnet): 0xa7d2607c6BD39Ae9521e514026CBB078405Ab322
+ * Implementation: 0x9ad14968093c5e8c2a8cc86f6868cfee8c659717
+ *
+ * register struct: (name, owner, duration, resolver, data, reverseRecord, coinTypes, signatureExpiry, signature)
+ * Cost: ~0.001 ETH for 5-9 char names, ~0.0001 ETH for 10+ chars
  */
 
-// Upgradeable controller (active) — legacy 0x4cCb...a5 was de-authorized (OnlyController revert)
 const REGISTRAR_CONTROLLER = '0xa7d2607c6BD39Ae9521e514026CBB078405Ab322';
 const L2_RESOLVER = '0xC6d566A56A1aFf6508b41f6c90ff131615583BCD';
 
-// Basenames RegistrarController ABI — no commit/reveal, just register(struct)
+// UpgradeableRegistrarController ABI — verified from on-chain selectors
 const REGISTRAR_ABI = [
   'function available(string name) view returns (bool)',
   'function valid(string name) pure returns (bool)',
   'function registerPrice(string name, uint256 duration) view returns (uint256)',
-  'function register(tuple(string name, address owner, uint256 duration, address resolver, bytes[] data, bool reverseRecord) request) payable',
+  'function register(tuple(string name, address owner, uint256 duration, address resolver, bytes[] data, bool reverseRecord, uint256[] coinTypes, uint256 signatureExpiry, bytes signature) request) payable',
 ];
 
 /**
@@ -46,7 +48,7 @@ export async function checkNameAvailable(name) {
 }
 
 /**
- * Register a Basename for the agent's wallet — single tx, no commit-reveal
+ * Register a Basename for the agent's wallet — single tx
  * @param {string} name - short name (without .base.eth)
  * @param {string} agentWallet - the agent's wallet address (owner of the name)
  * @returns {{ txHash, fullName }}
@@ -67,7 +69,10 @@ export async function registerBasename(name, agentWallet) {
     duration: YEAR,
     resolver: L2_RESOLVER,
     data: [],
-    reverseRecord: true,
+    reverseRecord: false,
+    coinTypes: [],
+    signatureExpiry: 0n,
+    signature: '0x',
   };
 
   const tx = await registrar.register(request, { value });
