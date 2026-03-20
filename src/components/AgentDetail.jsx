@@ -585,8 +585,7 @@ function getGreeting(agent) {
   return greetings[agent.element] || `*${agent.pokemon} regards you curiously from the ${agent.bioregionName}*`;
 }
 
-const BAZAAR_ADDRESS = '0x4F3832471190049CEf76a6FFDf56FDbD88672949';
-const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+const AUCTION_ADDRESS = '0xbe2DFd20300Be5CFa009e13C4AE8e3ed0bC16Ff1';
 
 function BidModal({ memory, onClose }) {
   const [auction, setAuction] = useState(null);
@@ -624,19 +623,15 @@ function BidModal({ memory, onClose }) {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const bidWei = ethers.parseEther(normalized);
-      // Bazaar charges 3% marketplace fee on top of bid amount
-      const valueWithFee = bidWei * 103n / 100n;
 
       setStatus('confirming');
-      const bazaar = new ethers.Contract(BAZAAR_ADDRESS, [
-        'function bid(address _originContract, uint256 _tokenId, address _currencyAddress, uint256 _amount) payable'
+      const auction = new ethers.Contract(AUCTION_ADDRESS, [
+        'function bid(address nft, uint256 tokenId) payable'
       ], signer);
-      const tx = await bazaar.bid(
+      const tx = await auction.bid(
         memory.nft_contract,
         memory.nft_token_id,
-        ZERO_ADDRESS,
-        bidWei,
-        { value: valueWithFee }
+        { value: bidWei }
       );
       await tx.wait();
       setTxHash(tx.hash);
@@ -714,7 +709,7 @@ function BidModal({ memory, onClose }) {
                     ) : timeLeft !== null ? (
                       <div className="text-[0.55rem] text-orange-400">{hoursLeft}h {minsLeft}m left</div>
                     ) : null}
-                    <div className="text-[0.55rem] text-[#6b8f72]">Min: {auction.minBid} ETH (+3% fee)</div>
+                    <div className="text-[0.55rem] text-[#6b8f72]">Min: {auction.minBid} ETH</div>
                   </div>
                 </div>
 

@@ -37,7 +37,7 @@ process.env.AGENT_PHANPY_PRIVATE_KEY = '0x' + 'ab'.repeat(32);
 const { ensureBazaarApproval, createAuction, getAuctionState, settleAuction } = await import('../services/auctionService.js');
 
 const NFT_CONTRACT = '0x59FbA43625eF81460930a8770Ee9c69042311c1a';
-const BAZAAR = '0x4F3832471190049CEf76a6FFDf56FDbD88672949';
+const BAZAAR = '0xbe2DFd20300Be5CFa009e13C4AE8e3ed0bC16Ff1';
 const ZERO = '0x0000000000000000000000000000000000000000';
 
 describe('auctionService', () => {

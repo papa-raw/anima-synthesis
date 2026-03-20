@@ -46,83 +46,53 @@ import { createPublicClient, http, formatEther } from 'viem';
 import { base } from 'viem/chains';
 
 const auctionClient = createPublicClient({ chain: base, transport: http(process.env.BASE_RPC_URL || 'https://mainnet.base.org') });
-const BAZAAR = '0x4F3832471190049CEf76a6FFDf56FDbD88672949';
-const BAZAAR_ABI = [
-  {
-    inputs: [{ name: '_originContract', type: 'address' }, { name: '_tokenId', type: 'uint256' }],
-    name: 'getAuctionDetails',
-    outputs: [
-      { name: 'auctionCreator', type: 'address' },
-      { name: 'creationBlock', type: 'uint256' },
-      { name: 'startTime', type: 'uint256' },
-      { name: 'lengthOfAuction', type: 'uint256' },
-      { name: 'currencyAddress', type: 'address' },
-      { name: 'minimumBid', type: 'uint256' },
-      { name: 'auctionType', type: 'bytes32' },
-      { name: 'splitAddresses', type: 'address[]' },
-      { name: 'splitRatios', type: 'uint8[]' }
-    ],
-    stateMutability: 'view',
-    type: 'function'
-  },
-  {
-    inputs: [{ name: '_originContract', type: 'address' }, { name: '_tokenId', type: 'uint256' }],
-    name: 'auctionBids',
-    outputs: [
-      { name: 'bidder', type: 'address' },
-      { name: 'currencyAddress', type: 'address' },
-      { name: 'amount', type: 'uint256' },
-      { name: 'marketplaceFee', type: 'uint8' }
-    ],
-    stateMutability: 'view',
-    type: 'function'
-  }
-];
+const AUCTION_CONTRACT = '0xbe2DFd20300Be5CFa009e13C4AE8e3ed0bC16Ff1';
+const AUCTION_ABI = [{
+  inputs: [{ name: '', type: 'address' }, { name: '', type: 'uint256' }],
+  name: 'auctions',
+  outputs: [
+    { name: 'seller', type: 'address' },
+    { name: 'minBid', type: 'uint256' },
+    { name: 'duration', type: 'uint256' },
+    { name: 'startTime', type: 'uint256' },
+    { name: 'endTime', type: 'uint256' },
+    { name: 'highBidder', type: 'address' },
+    { name: 'highBid', type: 'uint256' },
+    { name: 'settled', type: 'bool' }
+  ],
+  stateMutability: 'view',
+  type: 'function'
+}];
 
 app.get('/api/auction/:contract/:tokenId', async (req, res) => {
   res.set('Cache-Control', 'no-store');
   try {
     const { contract, tokenId } = req.params;
-    const details = await auctionClient.readContract({
-      address: BAZAAR, abi: BAZAAR_ABI, functionName: 'getAuctionDetails',
+    const result = await auctionClient.readContract({
+      address: AUCTION_CONTRACT, abi: AUCTION_ABI, functionName: 'auctions',
       args: [contract, BigInt(tokenId)]
     });
-    const [creator, , startTime, length, currency, minBid, auctionType] = details;
-    if (creator === '0x0000000000000000000000000000000000000000') {
+    const [seller, minBid, duration, startTime, endTime, highBidder, highBid, settled] = result;
+    if (seller === '0x0000000000000000000000000000000000000000') {
       return res.json({ active: false });
     }
 
-    // Try to get current bid
-    let currentBid = '0', currentBidder = null;
-    try {
-      const bidDetails = await auctionClient.readContract({
-        address: BAZAAR, abi: BAZAAR_ABI, functionName: 'auctionBids',
-        args: [contract, BigInt(tokenId)]
-      });
-      if (bidDetails[0] !== '0x0000000000000000000000000000000000000000') {
-        currentBidder = bidDetails[0];  // address bidder
-        currentBid = formatEther(bidDetails[2]); // uint256 amount
-      }
-    } catch { /* no bid yet */ }
-
-    const startNum = Number(startTime);
-    const lengthNum = Number(length);
     const now = Math.floor(Date.now() / 1000);
-    const isReserve = startNum === 0; // reserve auction hasn't had first bid yet
-    const endsAt = startNum > 0 ? startNum + lengthNum : null;
-    const expired = endsAt ? now > endsAt : false;
+    const startNum = Number(startTime);
+    const endNum = Number(endTime);
+    const isReserve = startNum === 0;
+    const expired = endNum > 0 ? now > endNum : false;
 
     res.json({
-      active: !expired,
-      creator,
-      currency,
+      active: !expired && !settled,
+      creator: seller,
       minBid: formatEther(minBid),
-      currentBid,
-      currentBidder,
+      currentBid: formatEther(highBid),
+      currentBidder: highBidder !== '0x0000000000000000000000000000000000000000' ? highBidder : null,
       isReserve,
-      endsAt,
-      lengthSeconds: lengthNum,
-      bazaar: BAZAAR
+      endsAt: endNum || null,
+      lengthSeconds: Number(duration),
+      auction: AUCTION_CONTRACT
     });
   } catch (e) {
     res.json({ active: false, error: e.message });
