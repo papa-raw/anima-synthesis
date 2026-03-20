@@ -80,8 +80,8 @@ export default function Globe({ agents, selectedAgent, onAgentSelect, dimmed }) 
     const map = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/dark-v11',
-      center: [0, 20],
-      zoom: 1.8,
+      center: [2.17, 41.39], // Start on Phanpy's bioregion
+      zoom: 4,
       projection: 'globe',
       fog: {
         color: '#0a0f0a',

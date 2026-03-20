@@ -150,11 +150,9 @@ Anima integrates 8+ sponsor technologies into a single coherent system governed 
 
 ## Agents
 
-| Agent | Element | Bioregion | Token | Wallet |
-|-------|---------|-----------|-------|--------|
-| Phanpy | Fighting | Mediterranean Forests (PA20) | [$PHANPY](https://clanker.world/clanker/0x70C445a2E1685266A7b66110082F9718337Feb07) | `0x5a41...DB5` |
-| Ponyta | Fire | Northeast US Forests (NA10) | $PONYTA | `0xAd7b...5D` |
-| Magnemite | Electric | Japanese Forests (PA47) | $MAGNET | `0x0B52...8a` |
+| Agent | Element | Bioregion | Token | Wallet | Basename |
+|-------|---------|-----------|-------|--------|----------|
+| Phanpy | Fighting | Mediterranean Forests (PA20) | [$PHANPY](https://clanker.world/clanker/0x70C445a2E1685266A7b66110082F9718337Feb07) | `0x5a41...DB5` | myphanpy.base.eth |
 
 ## Onchain Contracts
 

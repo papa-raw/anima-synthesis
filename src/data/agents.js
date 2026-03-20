@@ -14,43 +14,7 @@ export const AGENTS = [
     grade: 'PSA 9',
     serial: '107645022',
     imageUrl: 'https://crimson-calm-beetle-499.mypinata.cloud/ipfs/bafybeialfpygghh6itmqsyk2z5pf6ex3wqpmwho7wobiuu7acma75iqnvq/psa107645022.jpg',
-    markerCrop: { size: 450, x: 52, y: 53 },  // Phanpy centered
-    dailyCostUsd: 0.50
-  },
-  {
-    id: 'agent-ponyta',
-    pokemon: 'Ponyta',
-    element: 'fire',
-    bioregionId: 'NA10',
-    bioregionName: 'Northeast US Forests',
-    center: [-74.0, 40.7],  // New York City
-    tokenSymbol: '$PONYTA',
-    color: '#ef4444',
-    beezieTokenId: '617',
-    set: '2004 FireRed & LeafGreen',
-    cardNumber: 76,
-    grade: 'TAG 8',
-    serial: '5048257',
-    imageUrl: 'https://crimson-calm-beetle-499.mypinata.cloud/ipfs/bafybeiguixsyidzx3yf3x3cil5efx3co6fiowqvxj5tewyy2dpcblxd5lq/tagj5048257.jpg',
-    markerCrop: { size: 500, x: 50, y: 45 },  // Ponyta art is upper half of card
-    dailyCostUsd: 0.50
-  },
-  {
-    id: 'agent-magnemite',
-    pokemon: 'Magnemite',
-    element: 'electric',
-    bioregionId: 'PA47',
-    bioregionName: 'Japanese Forests',
-    center: [136.6, 36.2],  // Central Honshu, Japan
-    tokenSymbol: '$MAGNET',
-    color: '#eab308',
-    beezieTokenId: '1285',
-    set: '2016 Evolutions',
-    cardNumber: 37,
-    grade: 'PSA 8',
-    serial: '81978760',
-    imageUrl: 'https://crimson-calm-beetle-499.mypinata.cloud/ipfs/bafybeib2gg7tfl7l66vj6x642gsexvmoc5auniqnh5h6chy2ldeue6xvxy/psa81978760.jpg',
-    markerCrop: { size: 453, x: 45, y: 49 },  // Magnemite
+    markerCrop: { size: 450, x: 52, y: 53 },
     dailyCostUsd: 0.50
   }
 ];
