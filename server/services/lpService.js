@@ -224,62 +224,59 @@ export async function deepenLiquidity(agentId, ethAmount, tokenAddress, poolKey)
 }
 
 /**
- * Swap WETH → token via Universal Router
- * Uses exact input single pool swap
+ * Swap WETH → token via KyberSwap aggregator
+ * Routes through Clanker V4 pool automatically — handles custom hooks
  */
 async function swapWethForToken(walletClient, account, wethAmount, tokenAddress) {
-  // Approve Universal Router to spend WETH
-  const approveHash = await walletClient.writeContract({
-    address: WETH,
-    abi: ERC20_ABI,
-    functionName: 'approve',
-    args: [UNIVERSAL_ROUTER, wethAmount]
-  });
-  await publicClient.waitForTransactionReceipt({ hash: approveHash });
-
-  // Use V3-style exact input single swap via Universal Router
-  // Command 0x00 = V3_SWAP_EXACT_IN
-  const swapParams = encodeAbiParameters(
-    [
-      { name: 'recipient', type: 'address' },
-      { name: 'amountIn', type: 'uint256' },
-      { name: 'amountOutMin', type: 'uint256' },
-      { name: 'path', type: 'bytes' },
-      { name: 'payerIsUser', type: 'bool' },
-    ],
-    [
-      account.address,
-      wethAmount,
-      0n, // Accept any amount (hackathon — production would use slippage protection)
-      encodePath(WETH, 3000, tokenAddress), // 0.3% fee tier
-      true
-    ]
+  // Step 1: Get route from KyberSwap
+  const routeRes = await fetch(
+    `https://aggregator-api.kyberswap.com/base/api/v1/routes?tokenIn=${WETH}&tokenOut=${tokenAddress}&amountIn=${wethAmount.toString()}&saveGas=false`
   );
+  const routeData = await routeRes.json();
+  if (routeData.code !== 0 || !routeData.data?.routeSummary) {
+    throw new Error('KyberSwap: no route found');
+  }
 
-  const ROUTER_ABI = parseAbi([
-    'function execute(bytes commands, bytes[] inputs, uint256 deadline)',
-  ]);
-
-  const deadline = BigInt(Math.floor(Date.now() / 1000) + 1800);
-
-  const swapHash = await walletClient.writeContract({
-    address: UNIVERSAL_ROUTER,
-    abi: ROUTER_ABI,
-    functionName: 'execute',
-    args: [
-      '0x00', // V3_SWAP_EXACT_IN command
-      [swapParams],
-      deadline
-    ]
+  // Step 2: Build swap tx
+  const buildRes = await fetch('https://aggregator-api.kyberswap.com/base/api/v1/route/build', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      routeSummary: routeData.data.routeSummary,
+      sender: account.address,
+      recipient: account.address,
+      slippageTolerance: 500 // 5%
+    })
   });
+  const buildData = await buildRes.json();
+  if (buildData.code !== 0) throw new Error(`KyberSwap build failed: ${buildData.message}`);
 
+  const router = buildData.data.routerAddress;
+
+  // Step 3: Approve router for WETH
+  const allowance = await publicClient.readContract({
+    address: WETH, abi: ERC20_ABI, functionName: 'allowance',
+    args: [account.address, router]
+  });
+  if (allowance < wethAmount) {
+    const approveHash = await walletClient.writeContract({
+      address: WETH, abi: ERC20_ABI, functionName: 'approve',
+      args: [router, 2n ** 256n - 1n]
+    });
+    await publicClient.waitForTransactionReceipt({ hash: approveHash });
+  }
+
+  // Step 4: Execute swap
+  const swapHash = await walletClient.sendTransaction({
+    to: router,
+    data: buildData.data.data,
+    value: BigInt(buildData.data.transactionValue || 0)
+  });
   await publicClient.waitForTransactionReceipt({ hash: swapHash });
 
   // Read token balance after swap
   const balance = await publicClient.readContract({
-    address: tokenAddress,
-    abi: ERC20_ABI,
-    functionName: 'balanceOf',
+    address: tokenAddress, abi: ERC20_ABI, functionName: 'balanceOf',
     args: [account.address]
   });
 
@@ -287,29 +284,15 @@ async function swapWethForToken(walletClient, account, wethAmount, tokenAddress)
 }
 
 /**
- * Encode Uniswap V3 path: tokenA + fee + tokenB
- */
-function encodePath(tokenIn, fee, tokenOut) {
-  // V3 path encoding: address (20 bytes) + fee (3 bytes) + address (20 bytes)
-  const feeHex = fee.toString(16).padStart(6, '0');
-  return `${tokenIn}${feeHex}${tokenOut.slice(2)}`;
-}
-
-/**
  * Default pool key for Clanker V4 tokens
- * Clanker deploys with WETH as quote token
+ * Discovered from PoolManager Initialize event at PHANPY deploy block
  */
 function getDefaultPoolKey(tokenAddress) {
-  // currency0 must be < currency1 (sorted by address)
-  const token = tokenAddress.toLowerCase();
-  const weth = WETH.toLowerCase();
-  const [currency0, currency1] = token < weth ? [tokenAddress, WETH] : [WETH, tokenAddress];
-
   return {
-    currency0,
-    currency1,
-    fee: 3000, // 0.3%
-    tickSpacing: 60,
-    hooks: '0x0000000000000000000000000000000000000000', // No hooks for standard pool
+    currency0: WETH,
+    currency1: tokenAddress,
+    fee: 8388608, // 0x800000 = dynamic fee
+    tickSpacing: 200,
+    hooks: '0xd60d6b218116cfd801e28f78d011a203d2b068cc', // Clanker fee hook
   };
 }
