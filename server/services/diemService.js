@@ -82,7 +82,7 @@ function getAgentWallet(agentId) {
 export async function getStakedVvv(walletAddress) {
   try {
     const staked = await publicClient.readContract({
-      address: SVVV_STAKING, abi: STAKING_ABI, functionName: 'stakes', args: [walletAddress]
+      address: SVVV_STAKING, abi: ERC20_ABI, functionName: 'balanceOf', args: [walletAddress]
     });
     return parseFloat(formatEther(staked));
   } catch { return 0; }
