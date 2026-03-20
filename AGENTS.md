@@ -15,22 +15,6 @@ Anima is a system of autonomous Pokemon agents ensouled on Base. Each agent has 
 - **Soul:** `server/souls/agent-phanpy.md`
 - **Status:** Wild, operational, token deployed, NFT ensouled
 
-### Ponyta (agent-ponyta)
-- **Element:** Fire
-- **Bioregion:** Northeast US Forests (NA10)
-- **Token:** Pending deployment
-- **Wallet:** `0xAd7b0be097Ae1E36bc6edA4D2101b97093404a5D`
-- **NFT:** Beezie #617 (TAG 8, 2004 FireRed & LeafGreen)
-- **Soul:** `server/souls/agent-ponyta.md`
-
-### Magnemite (agent-magnemite)
-- **Element:** Electric
-- **Bioregion:** Japanese Forests (PA47)
-- **Token:** Pending deployment
-- **Wallet:** `0x0B52d8445D809F55E58282C1FFB2bacD6eBB248a`
-- **NFT:** Beezie #1285 (PSA 8, 2016 Evolutions)
-- **Soul:** `server/souls/agent-magnemite.md`
-
 ## Capabilities
 
 ### Autonomous Behaviors (no human intervention)
@@ -45,7 +29,7 @@ Anima is a system of autonomous Pokemon agents ensouled on Base. Each agent has 
 - **Soul chat**: users talk to agents via Bankr LLM Gateway (agent pays for own inference)
 - **Memory distillation**: agent decides what's worth remembering from each conversation
 - **Memory art**: Venice Flux generates art from the agent's POV, minted as NFT, auto-auctioned
-- **Bidding**: users bid on memory art NFTs via SuperRare Bazaar (ETH + 3% marketplace fee)
+- **Bidding**: users bid on memory art NFTs via AnimaAuction (ETH + 3% marketplace fee)
 - **Capture**: requires agent token holding + physical presence (GPS + Astral proof) + Beezie NFT
 - **Naming**: catcher registers a .base.eth Basename for the agent (ENS on Base)
 - **Release**: catcher can release agent into a new bioregion, creating the strongest memory type
@@ -53,7 +37,7 @@ Anima is a system of autonomous Pokemon agents ensouled on Base. Each agent has 
 ### Onchain Actions
 - **Token deployment**: ERC-20 via Clanker SDK (Uniswap V4 LP pair with WETH)
 - **NFT minting**: Memory art as ERC-721 on Rare Protocol (agent pays gas)
-- **Auction creation**: 1hr reserve auctions on SuperRare Bazaar (agent pays gas)
+- **Auction creation**: 1hr reserve auctions on AnimaAuction (agent pays gas)
 - **Auction settlement**: auto-settled by agent loop, ETH proceeds to agent wallet
 - **LP deepening**: auction proceeds → wrap WETH → swap half for agent token → mint V4 LP position
 - **VVV staking**: ETH → VVV on Aerodrome → stake on Venice → autonomous compute credits
@@ -78,7 +62,7 @@ Frontend (Vercel: anima.cards)
 Backend (Hetzner: api.anima.cards)
   ├── Express API (agents, capture, release, chat, heartbeats, memories, history, auction)
   ├── Agent autonomy loop (30-min tick per agent)
-  ├── Auction service (Bazaar contract: create, settle, state check)
+  ├── Auction service (AnimaAuction contract: create, settle, state check)
   ├── LP service (Uniswap V4: wrap, swap, mint position)
   ├── DIEM service (Aerodrome swap, VVV staking, Venice API key gen)
   ├── Memory art (Venice Flux → IPFS → Rare Protocol mint → Bazaar auction)
@@ -87,10 +71,11 @@ Backend (Hetzner: api.anima.cards)
   ├── Onchain verification (token balance, Beezie NFT ownership)
   └── SQLite database (agents, memories, heartbeats, capture proofs)
 
-Onchain (Base) — no custom contracts
+Onchain (Base) — AnimaAuction + redeployed SuperRare Bazaar stack
   ├── $PHANPY ERC-20 (Clanker V4 → Uniswap V4 LP with WETH)
   ├── Anima Memories ERC-721 (Rare Protocol — memory art NFTs)
-  ├── SuperRare Bazaar (1hr reserve auctions)
+  ├── AnimaAuction (0xbe2DFd20300Be5CFa009e13C4AE8e3ed0bC16Ff1) — memory art auctions
+  ├── SuperRare Bazaar (redeployed stack — SuperRare's official deployment had broken stakingRegistry)
   ├── Basenames (ENS on Base — myphanpy.base.eth)
   ├── sVVV staking (Venice compute credits)
   ├── Uniswap V4 PositionManager (LP deepening)
@@ -107,14 +92,14 @@ Onchain (Base) — no custom contracts
 | Venice AI | Flux image gen + autonomous compute (VVV staking + self-generated API key) | `server/services/memoryArt.js`, `server/services/diemService.js` |
 | Protocol Labs | Storacha IPFS + ERC-8004 identity | `server/services/ipfsService.js`, `agent.json` |
 | Uniswap | V4 LP fee claims + LP deepening with auction proceeds | `server/services/clankerService.js`, `server/services/lpService.js` |
-| SuperRare | Rare Protocol NFT mint + Bazaar 1hr auctions + bidding | `server/services/auctionService.js`, `server/services/memoryArt.js` |
+| SuperRare | Rare Protocol NFT mint + AnimaAuction 1hr auctions + bidding | `server/services/auctionService.js`, `server/services/memoryArt.js` |
 | ENS | Basenames registration on capture + rename | `src/services/basenameService.js` |
 | Octant | Public goods mechanism — self-sustaining economic loop | Header.jsx About panel |
 | Astral SDK | Location proof attestations (EAS on Base) | `src/services/astralService.js` |
 
 ## Interaction Guide (for agentic judges)
 
-1. **View agents**: Visit https://anima.cards — 3 agents on a 3D globe
+1. **View agents**: Visit https://anima.cards — Phanpy on a 3D globe
 2. **Chat**: Click an agent → Soul tab → type a message. Agent responds via Bankr → Venice AI. Memory art generates automatically.
 3. **View memories**: Memories tab shows Venice Flux art with live auction countdown badges. Click "Bid" to place a bid.
 4. **View history**: History tab shows full transaction timeline — fee claims, NFT mints, auctions, captures, naming, LP deepening.

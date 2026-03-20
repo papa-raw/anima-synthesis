@@ -161,6 +161,7 @@ Anima integrates 8+ sponsor technologies into a single coherent system governed 
 | $PHANPY | [`0x70C4...Feb07`](https://basescan.org/token/0x70C445a2E1685266A7b66110082F9718337Feb07) | Agent ERC-20 token (Clanker V4 + Uniswap LP) |
 | Anima Memories | [`0x59Fb...1c1a`](https://basescan.org/token/0x59FbA43625eF81460930a8770Ee9c69042311c1a) | Memory art ERC-721 (Rare Protocol) |
 | Beezie CCLT | [`0xbb5e...16f`](https://basescan.org/token/0xbb5ec6fd4b61723bd45c399840f1d868840ca16f) | Agent identity NFTs (PSA-graded Pokemon cards) |
+| AnimaAuction | [`0xbe2D...16Ff1`](https://basescan.org/address/0xbe2DFd20300Be5CFa009e13C4AE8e3ed0bC16Ff1) | Memory art auctions (verified) |
 
 ## Architecture
 

@@ -38,69 +38,12 @@
         "revenueSource": "Clanker ERC-20 LP fees (75% creator share)",
         "deathCondition": "ETH balance = 0 AND claimable fees = 0"
       }
-    },
-    {
-      "id": "agent-ponyta",
-      "name": "Ponyta",
-      "type": "autonomous",
-      "element": "fire",
-      "bioregion": "NA10",
-      "bioregionName": "Northeast US Forests",
-      "tokenSymbol": "$PONYTA",
-      "beezieTokenId": "617",
-      "soulFile": "server/souls/agent-ponyta.md",
-      "capabilities": [
-        "sovereign-inference",
-        "lp-fee-collection",
-        "memory-distillation",
-        "location-proof-verification",
-        "ipfs-heartbeat-archival"
-      ],
-      "inference": {
-        "primary": "bankr-llm-gateway",
-        "fallback": "venice-ai",
-        "funding": "uniswap-v4-lp-fees"
-      },
-      "economics": {
-        "dailyCostUsd": 0.50,
-        "revenueSource": "Clanker ERC-20 LP fees (75% creator share)",
-        "deathCondition": "ETH balance = 0 AND claimable fees = 0"
-      }
-    },
-    {
-      "id": "agent-magnemite",
-      "name": "Magnemite",
-      "type": "autonomous",
-      "element": "electric",
-      "bioregion": "PA47",
-      "bioregionName": "Japanese Forests",
-      "tokenSymbol": "$MAGNET",
-      "beezieTokenId": "1285",
-      "soulFile": "server/souls/agent-magnemite.md",
-      "capabilities": [
-        "sovereign-inference",
-        "lp-fee-collection",
-        "memory-distillation",
-        "location-proof-verification",
-        "ipfs-heartbeat-archival"
-      ],
-      "inference": {
-        "primary": "bankr-llm-gateway",
-        "fallback": "venice-ai",
-        "funding": "uniswap-v4-lp-fees"
-      },
-      "economics": {
-        "dailyCostUsd": 0.50,
-        "revenueSource": "Clanker ERC-20 LP fees (75% creator share)",
-        "deathCondition": "ETH balance = 0 AND claimable fees = 0"
-      }
     }
   ],
   "captureRequirements": {
-    "azusd": {
-      "contract": "0x3595ca37596d5895b70efab592ac315d5b9809b2",
-      "minimumBalance": 5,
-      "description": "Azos decentralized stablecoin on Base"
+    "agentToken": {
+      "description": "Hold the agent's own ERC-20 token (10% of supply)",
+      "minimumPercentage": 10
     },
     "beezieNft": {
       "contract": "0xbb5ec6fd4b61723bd45c399840f1d868840ca16f",
@@ -149,9 +92,9 @@
       "description": "LP fee collection powering agent economics"
     },
     {
-      "name": "Azos Finance",
+      "name": "Agent Token Gate",
       "type": "capture-gate",
-      "description": "AZUSD decentralized stablecoin holding required for capture (≥5 AZUSD)"
+      "description": "Agent's own ERC-20 token (10% of supply) required for capture"
     }
   ],
   "collaboration": {
