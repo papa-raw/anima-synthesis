@@ -95,7 +95,8 @@ export async function ensureBazaarApproval(agentId, nftContract) {
 export async function createAuction(agentId, nftContract, tokenId, opts = {}) {
   const { walletClient } = getWalletClient(agentId);
   const duration = opts.durationSeconds || 3600;
-  const minBid = parseEther(opts.startingPriceEth || '0.0001');
+  // Min bid = LP deepening minimum (0.0002 ETH) + 50% buffer for gas/slippage
+  const minBid = parseEther(opts.startingPriceEth || '0.0003');
 
   const hash = await walletClient.writeContract({
     address: AUCTION_ADDRESS,

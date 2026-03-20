@@ -186,7 +186,7 @@
 | Bankr | $5,000 | LLM Gateway for sovereign inference | Done — key enabled, agent pays for own thinking |
 | Venice AI | $11,500 | Private cognition + Memory Art (Flux) + DIEM autonomous compute | Done — `flux-2-max` + VVV staking + self-generated API key, zero human credits |
 | Protocol Labs | $16,000 | Storacha IPFS + ERC-8004 | Integrated — agent.json + agent_log.json. ERC-8004 NFT needs claiming |
-| Uniswap | $5,000 | LP fee collection + LP deepening | Done — fee claims + auction→settlement→LP deepen pipeline |
+| Uniswap | $5,000 | LP fee collection + LP deepening | Done — fee claims + KyberSwap V4 swap + V4 LP position mint verified onchain (tx `0x92eca5...`) |
 | ENS | $1,500 | Naming rights on capture (Basenames) | Done — myphanpy.base.eth registered, rename UI |
 | SuperRare | $2,500 | Memory Art NFT mint + auction (Rare Protocol) | Done — direct Bazaar contract, 1hr auctions, bidding, live countdown |
 | Octant | $3,000 | Phanpy's public goods mechanism design | Done — About panel + COLLABORATION.md + full loop described |

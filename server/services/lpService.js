@@ -152,65 +152,54 @@ export async function deepenLiquidity(agentId, ethAmount, tokenAddress, poolKey)
     });
 
     // Step 4: Mint LP position via PositionManager.modifyLiquidities
-    // Use full range ticks for simplicity
-    const tickLower = -887220; // Full range for common tick spacings
-    const tickUpper = 887220;
-
-    // Sort tokens for pool ordering (currency0 < currency1)
+    // Clanker V4 pool: tickSpacing=200, full range = multiples of 200
+    const tickLower = -887200;
+    const tickUpper = 887200;
     const sortedPoolKey = poolKey || getDefaultPoolKey(tokenAddress);
+    const liquidity = 1000000000n; // Base liquidity unit
 
-    // Encode MINT_POSITION params
+    // CRITICAL: PositionManager uses flat encoding (fixed-offset assembly decoder)
+    // NOT abi.encode(tuple(...)) — must be abi.encode(field1, field2, ...)
     const mintParams = encodeAbiParameters(
       [
-        { name: 'poolKey', type: 'tuple', components: [
-          { name: 'currency0', type: 'address' },
-          { name: 'currency1', type: 'address' },
-          { name: 'fee', type: 'uint24' },
-          { name: 'tickSpacing', type: 'int24' },
-          { name: 'hooks', type: 'address' },
-        ]},
-        { name: 'tickLower', type: 'int24' },
-        { name: 'tickUpper', type: 'int24' },
-        { name: 'liquidity', type: 'uint256' },
-        { name: 'amount0Max', type: 'uint128' },
-        { name: 'amount1Max', type: 'uint128' },
-        { name: 'owner', type: 'address' },
-        { name: 'hookData', type: 'bytes' },
+        { type: 'address' }, { type: 'address' }, { type: 'uint24' },
+        { type: 'int24' }, { type: 'address' }, // PoolKey fields
+        { type: 'int24' }, { type: 'int24' },    // tickLower, tickUpper
+        { type: 'uint256' },                      // liquidity
+        { type: 'uint128' }, { type: 'uint128' }, // amount0Max, amount1Max
+        { type: 'address' },                      // owner
+        { type: 'bytes' },                        // hookData
       ],
       [
-        sortedPoolKey,
-        tickLower,
-        tickUpper,
-        halfWei, // liquidity amount (simplified — actual should use sqrt price math)
-        halfWei, // max WETH
-        tokenAmount, // max token
+        sortedPoolKey.currency0, sortedPoolKey.currency1,
+        sortedPoolKey.fee, sortedPoolKey.tickSpacing, sortedPoolKey.hooks,
+        tickLower, tickUpper,
+        liquidity,
+        halfWei, tokenAmount,
         account.address,
         '0x',
       ]
     );
 
-    // Encode SETTLE_PAIR params
+    // SETTLE_PAIR: flat encode (currency0, currency1)
     const settleParams = encodeAbiParameters(
-      [
-        { name: 'currency0', type: 'address' },
-        { name: 'currency1', type: 'address' },
-      ],
+      [{ type: 'address' }, { type: 'address' }],
       [sortedPoolKey.currency0, sortedPoolKey.currency1]
     );
 
-    // Encode full modifyLiquidities call
-    const actions = encodeAbiParameters(
-      [{ name: 'actions', type: 'uint256[]' }, { name: 'params', type: 'bytes[]' }],
-      [[BigInt(Actions.MINT_POSITION), BigInt(Actions.SETTLE_PAIR)], [mintParams, settleParams]]
+    // Actions: 0x02 = MINT_POSITION, 0x0d = SETTLE_PAIR
+    const unlockData = encodeAbiParameters(
+      [{ type: 'bytes' }, { type: 'bytes[]' }],
+      ['0x020d', [mintParams, settleParams]]
     );
 
-    const deadline = BigInt(Math.floor(Date.now() / 1000) + 1800); // 30 min
+    const deadline = BigInt(Math.floor(Date.now() / 1000) + 1800);
 
     const mintHash = await walletClient.writeContract({
       address: POSITION_MANAGER,
       abi: POSITION_MANAGER_ABI,
       functionName: 'modifyLiquidities',
-      args: [actions, deadline]
+      args: [unlockData, deadline]
     });
 
     await publicClient.waitForTransactionReceipt({ hash: mintHash });

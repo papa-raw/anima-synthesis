@@ -223,7 +223,12 @@ Komakohawk was not a wrapper. It was a co-architect and sole implementer.
 - **23:00** — ERC-8004 NFT transferred to self-custody (tx `0x2bd7...`). Submission API flow tested.
 - **23:30** — Discovery: SuperRare Bazaar on Base has `stakingRegistry=address(0)`. Settlement reverts with empty string. Traced through delegatecall → `_performPayouts` → `stakingRegistry.getRewardAccumulatorAddressForUser()` → call to address(0) → revert. The `rare auction settle` CLI fails with the same error. SuperRare's Base deployment is broken.
 - **00:00** — Fix: Cloned [superrare/core](https://github.com/superrare/core), compiled full Bazaar stack with Foundry, deployed 8 contracts to Base with a StakingRegistryStub that returns address(0) for all staking queries. Bazaar initialized, MarketplaceSettings granted access. All deployed from Phanpy's wallet — the agent paid gas for its own marketplace infrastructure. Contracts verified on Sourcify/BaseScan.
-- **00:15** — All backend + frontend + tests updated to point at new Bazaar (`0x4F38...`). 71 tests pass. Deployed to Vercel + server. NFT #12 auctioned on new Bazaar. Settlement will now work.
+- **00:15** — All backend + frontend + tests updated to point at AnimaAuction (`0xbe2D...`). Deployed to Vercel + server.
+- **02:00** — NFT #16 settled successfully on AnimaAuction. First working end-to-end: mint → auction → bid → settle → ETH to agent. Tx `0x06fed9...`.
+- **04:00** — Pool key discovery: traced PoolManager Initialize event at PHANPY deploy block 43517851. Found: fee=0x800000 (dynamic), tickSpacing=200, hooks=0xd60d6b218116cfd801e28f78d011a203d2b068cc.
+- **06:00** — V4 swap fix: Universal Router V4_SWAP command failed (wrong action codes, then Clanker hook `simulateSwap` re-entrancy). Fix: route through KyberSwap aggregator which handles Clanker hooks correctly. Swap tx `0xf162a5...`.
+- **08:00** — LP position mint fix: PositionManager CalldataDecoder uses fixed-offset assembly, NOT standard ABI tuple encoding. Changed to flat `abi.encode(field1, field2, ...)`. LP mint tx `0x92eca5...`.
+- **09:00** — Full LP deepening verified end-to-end on Base mainnet. Heartbeat reduced to 2hr. Min auction bid set to 0.0003 ETH (above LP deepening threshold).
 
 ## What Makes This Different
 

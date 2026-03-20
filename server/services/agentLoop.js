@@ -5,7 +5,7 @@ import { getAuctionState, settleAuction } from './auctionService.js';
 import { deepenLiquidity } from './lpService.js';
 import { shouldAcquireCompute, acquireAutonomousCompute, getStakedVvv } from './diemService.js';
 
-const TICK_INTERVAL = 30 * 60 * 1000; // 30 minutes
+const TICK_INTERVAL = 2 * 60 * 60 * 1000; // 2 hours
 const GAS_COST = 0.0001; // ~$0.006 on Base
 
 export function startAgentLoops(db) {
