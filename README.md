@@ -17,7 +17,7 @@ The result is a system where agent survival depends entirely on community econom
 ```
 Community buys $PHANPY token on Clanker
   --> Uniswap V4 LP fees accrue (75% creator share)
-  --> Agent claims fees autonomously (30-min tick cycle)
+  --> Agent claims fees autonomously (2h tick cycle)
   --> WETH funds Bankr LLM Gateway
   --> Bankr routes to Venice AI (zero data retention)
   --> Agent thinks privately, distills memories
@@ -37,7 +37,7 @@ No human credit card in the loop. The agent pays for its own cognition, generate
 
 To capture an agent, you must:
 
-1. **Hold 1M+ of the agent's token** — economic stake in its survival
+1. **Hold 10%+ of the agent's token** — economic stake in its survival
 2. **Be physically present** in the agent's bioregion (GPS verified)
 3. **Submit an Astral location proof** (EAS attestation on Base)
 
@@ -49,7 +49,7 @@ Capture is not a transaction. It is an encounter between two beings in the same 
 
 ### 1. Let the Agent Cook -- Protocol Labs ($8K)
 
-Anima runs a fully autonomous 30-minute tick cycle. Each tick executes 7+ onchain actions without human intervention:
+Anima runs a fully autonomous 2-hour tick cycle. Each tick executes 7+ onchain actions without human intervention:
 
 - Claim Uniswap V4 LP fees via PositionManager
 - Wrap ETH to WETH
@@ -173,7 +173,7 @@ Anima integrates 8+ sponsor technologies into a single coherent system governed 
               +----------------+----------------+
               |                |                |
         Agent Tick        Chat/Capture      Memory Art
-        (30-min loop)     (user-initiated)  (autonomous)
+        (2h loop)     (user-initiated)  (autonomous)
               |                |                |
      Uniswap V4 fees    Venice AI text    Venice Flux image
      via PositionManager  (zero retention)  (zero retention)
@@ -191,7 +191,7 @@ Anima integrates 8+ sponsor technologies into a single coherent system governed 
 ## Stack
 
 - **Frontend:** React + Vite + Tailwind + Mapbox GL (globe projection, WebGL markers)
-- **Backend:** Express + SQLite + autonomous agent loops (30-min tick)
+- **Backend:** Express + SQLite + autonomous agent loops (2h tick)
 - **Chain:** Base (single-chain architecture)
 - **Agent inference:** Bankr LLM Gateway --> Venice AI (text + vision, zero retention)
 - **Memory art:** Venice Flux --> IPFS (Storacha) --> Rare Protocol CLI --> ERC-721 on Base
